@@ -26,16 +26,17 @@ eval_all <- do.call(rbind, rf.eval) %>%
                                 'PCRcalibr-RFbm','PCRcalibr-RF'))) %>% 
   mutate(station=factor(station, levels=c('Basel','Lobith','Cochem'))) %>% 
   mutate(plotTitle=factor(plotTitle, levels = c('Basel (Rhine)','Lobith (Rhine)',
-                                                'Cochem (Moselle)')))
+                                                'Cochem (Moselle)'))) %>% 
+  select(-nMAE, -nMAE_corrected)
 # eval_all %>% gather(., 'key','value', c('KGE','nRMSE', 'nMAE', 'Rsquared'))
 
 #----------- GOF: Only corrected--------------
 ## Model performance improvement relative to the PCR-GLOBWB without bias correction by RF.
 ## 
 eval_all_r <-       
-    (eval_all %>% select(matches('corrected'))-(eval_all %>% select('KGE','NSE','nRMSE','nMAE','Rsquared')))/(eval_all %>% select('KGE','NSE','nRMSE','nMAE','Rsquared'))*100
+    (eval_all %>% select(matches('corrected'))-(eval_all %>% select('KGE','NSE','nRMSE','Rsquared')))/(eval_all %>% select('KGE','NSE','nRMSE','Rsquared'))*100
 names(eval_all_r) <- eval_all_r %>% names() %>% lapply(., sub, pattern='_corrected',replacement='') %>% unlist
-eval_all_r <- ((eval_all_r %>% t())*c(1,1,-1,-1,1)) %>% t() %>% as.data.frame()
+eval_all_r <- ((eval_all_r %>% t())*c(1,1,-1,1)) %>% t() %>% as.data.frame()
 eval_all_r <- eval_all_r %>% 
     mutate(datatype=eval_all$datatype,
            station=eval_all$station,
@@ -45,9 +46,9 @@ eval_all_r <- eval_all_r %>%
          calibr_config=ifelse(grepl('calibr', config), 'PCR_calibr', 'PCR_uncalibr'))
 eval_all_rG <- 
   gather(eval_all_r, 'GOF', 'value', 
-         c('KGE','NSE','nRMSE','nMAE','Rsquared')) %>% 
+         c('KGE','NSE','nRMSE','Rsquared')) %>% 
   mutate(GOF=factor(GOF, levels = c('KGE','NSE','Rsquared',
-                                    'nRMSE','nMAE')))
+                                    'nRMSE')))
 ggplot(data = eval_all_rG, 
        aes(x=station, y=value, fill=config))+
     geom_col(position = 'dodge')+
@@ -121,7 +122,47 @@ ggplot(data = eval_allG %>%
 ggsave('../graph/RFresult_all/gof_abs_new.tiff', dpi = 300,
        width = 8.5, height = 7)
 
-  
+
+ggplot(data = eval_allG %>% 
+         filter(datatype=='test') %>% 
+         filter(grepl('corrected', gof)) %>% 
+         mutate(gof=sub('_corrected','', gof)) %>% 
+         mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
+                                           'nRMSE','nMAE'))), 
+       aes(x=station, y=value, fill=config))+
+  geom_col(position = 'dodge')+
+  #pure PCR model
+  geom_col(data = eval_allG %>% 
+             filter(!grepl('corrected', gof)) %>% 
+             mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
+                                               'nRMSE','nMAE'))), 
+           aes(x=station, y=value, col=pcr_config), 
+           position = 'dodge', fill='transparent', lwd=1.1)+
+  facet_grid(gof~., scale='free')+
+  theme_light()+
+  theme(
+    axis.text.y = element_text(size = 12),
+    # axis.text.y = element_blank(),
+    axis.title = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    strip.text.x = element_text(size = 15, color = 'black'),
+    strip.background = element_rect(colour = "grey", fill = "white"),
+    strip.text.y = element_text(size = 15, color = 'black'),
+    # strip.background = element_blank(),
+    # strip.text = element_blank(),
+    title = element_text(size = 17),
+    
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 15),)+
+  scale_fill_manual(values=c('chartreuse2','forestgreen',
+                             'lightseagreen','midnightblue'))+
+  scale_color_manual(values=c('olivedrab1', 'cadetblue1'))+
+  labs(title = 'Model performance at different stations', 
+       subtitle = '1991-2000 (test period)', 
+       y='GOF value',
+       color=paste0('Pure PCR-GLOBWB \nwithout RF-correction'), fill='Model configurations')
+ggsave('../graph/RFresult_all/gof_abs_new.tiff', dpi = 300,
+       width = 8.5, height = 7)
 #-------------Variable importance-------------
 fileName <- lapply(dir, list.files, pattern='importance')[[1]]
 csvFiles <- lapply(dir, paste0, fileName)
