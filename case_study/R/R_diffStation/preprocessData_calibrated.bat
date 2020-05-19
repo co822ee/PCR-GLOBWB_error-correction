@@ -1,0 +1,6 @@
+python 0_read_netCDF_inputVariable.py
+python 0_read_netCDF_stateVariable_defaultPCR.py
+python 0_read_netCDF_pcrDischarge_defaultPCR.py
+python 0_read_netCDF_stateVariable_calibrated.py
+python 0_read_netCDF_pcrDischarge_calibrated.py
+pause

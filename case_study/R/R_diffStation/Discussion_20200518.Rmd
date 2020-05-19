@@ -1,0 +1,14 @@
+---
+title: "20200519 Meeting"
+author: "Youchen"
+date: "5/18/2020"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+### Relative performance 
+
+
