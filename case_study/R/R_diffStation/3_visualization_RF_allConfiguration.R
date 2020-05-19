@@ -97,12 +97,25 @@ ggplot(data = eval_allG %>%
              mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
                                                'nRMSE','nMAE'))), 
            aes(x=station, y=value, col=pcr_config), 
-           position = 'dodge', fill='transparent', lwd=1.5)+
+           position = 'dodge', fill='transparent', lwd=1.1)+
   facet_grid(gof~datatype, scale='free')+
-  theme_gray(base_size = 16)+
-  scale_fill_manual(values=c('olivedrab2','olivedrab',
-                             'lightskyblue','midnightblue'))+
-  scale_color_manual(values=c('#7CAE00', '#00BFC4'))+
+  theme_light()+
+  theme(
+    axis.text.y = element_text(size = 12),
+    # axis.text.y = element_blank(),
+    axis.title = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    strip.text.x = element_text(size = 15, color = 'black'),
+    strip.background = element_rect(colour = "grey", fill = "white"),
+    strip.text.y = element_text(size = 15, color = 'black'),
+    # strip.background = element_blank(),
+    # strip.text = element_blank(),
+    title = element_text(size = 17),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 15))+
+  scale_fill_manual(values=c('chartreuse2','forestgreen',
+                             'lightseagreen','midnightblue'))+
+  scale_color_manual(values=c('olivedrab1', 'cadetblue1'))+
   labs(title = 'Model performance at different stations', y='GOF value',
        color=paste0('Pure PCR-GLOBWB \nwithout RF-correction'), fill='Model configurations')
 ggsave('../graph/RFresult_all/gof_abs_new.tiff', dpi = 300,
