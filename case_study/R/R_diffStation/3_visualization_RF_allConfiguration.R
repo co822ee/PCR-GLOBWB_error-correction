@@ -61,7 +61,7 @@ ggplot(data = eval_all_rG,
 ggsave('../graph/RFresult_all/gof_rel.tiff', dpi = 300,
        width = 8, height = 7)
 
-# Model performance 
+#------- Model performance --------
 eval_allG <- eval_all %>% 
     gather(., 'gof','value', -c('datatype','station', 'plotTitle', 
                                 'config')) %>% 
@@ -69,60 +69,7 @@ eval_allG <- eval_all %>%
                           'RFcorrected', 'purePCR'),
            pcr_config=sapply(strsplit(config %>% as.character(), "-"), "[", 1) %>% 
              factor(levels=c('PCRun', 'PCRcalibr')))
-
-ggplot(data = eval_allG %>% 
-         filter(grepl('corrected', gof)) %>% 
-         mutate(gof=sub('_corrected','', gof)) %>% 
-         mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
-                                           'nRMSE','nMAE'))), 
-                aes(x=station, y=value, fill=config))+
-         geom_col(position = 'dodge')+
-         facet_grid(gof~datatype, scale='free')+
-         theme_gray(base_size = 16)+
-         scale_fill_manual(values=c('olivedrab2','olivedrab',
-                                    'lightskyblue','midnightblue'))+
-         labs(title = 'Model performance at different stations', y='GOF value')
-ggsave('../graph/RFresult_all/gof_abs.tiff', dpi = 300,
-       width = 8, height = 7)
-
-ggplot(data = eval_allG %>% 
-         filter(grepl('corrected', gof)) %>% 
-         mutate(gof=sub('_corrected','', gof)) %>% 
-         mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
-                                           'nRMSE','nMAE'))), 
-       aes(x=station, y=value, fill=config))+
-  geom_col(position = 'dodge')+
-  #pure PCR model
-  geom_col(data = eval_allG %>% 
-             filter(!grepl('corrected', gof)) %>% 
-             mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
-                                               'nRMSE','nMAE'))), 
-           aes(x=station, y=value, col=pcr_config), 
-           position = 'dodge', fill='transparent', lwd=1.1)+
-  facet_grid(gof~datatype, scale='free')+
-  theme_light()+
-  theme(
-    axis.text.y = element_text(size = 12),
-    # axis.text.y = element_blank(),
-    axis.title = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
-    strip.text.x = element_text(size = 15, color = 'black'),
-    strip.background = element_rect(colour = "grey", fill = "white"),
-    strip.text.y = element_text(size = 15, color = 'black'),
-    # strip.background = element_blank(),
-    # strip.text = element_blank(),
-    title = element_text(size = 17),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 15))+
-  scale_fill_manual(values=c('chartreuse2','forestgreen',
-                             'lightseagreen','midnightblue'))+
-  scale_color_manual(values=c('olivedrab1', 'cadetblue1'))+
-  labs(title = 'Model performance at different stations', y='GOF value',
-       color=paste0('Pure PCR-GLOBWB \nwithout RF-correction'), fill='Model configurations')
-ggsave('../graph/RFresult_all/gof_abs_new.tiff', dpi = 300,
-       width = 8.5, height = 7)
-
-
+#------test----------
 ggplot(data = eval_allG %>% 
          filter(datatype=='test') %>% 
          filter(grepl('corrected', gof)) %>% 
@@ -142,10 +89,11 @@ ggplot(data = eval_allG %>%
   facet_grid(gof~., scale='fixed')+
   theme_light()+
   theme(
-    axis.text.y = element_text(size = 12),
+    axis.text.y = element_text(size = 14),
     # axis.text.y = element_blank(),
-    axis.title = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(size = 14),
     strip.text.x = element_text(size = 15, color = 'black'),
     strip.background = element_rect(colour = "grey", fill = "white"),
     strip.text.y = element_text(size = 15, color = 'black'),
@@ -153,20 +101,30 @@ ggplot(data = eval_allG %>%
     # strip.text = element_blank(),
     title = element_text(size = 17),
     plot.subtitle = element_text(size = 15),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 15),)+
-  scale_fill_manual(values=c('chartreuse2','forestgreen',
-                             'lightseagreen','midnightblue'))+
-  scale_color_manual(values=c('olivedrab1', 'cadetblue1'))+
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 14)
+    # legend.position = 'bottom'
+    )+
+  scale_fill_manual(
+    # labels = c('PCRun', 'PCRun-RFd', 'PCRun-RFds', 
+    #            'PCRcalibr', 'PCRcalibr-RFd','PCRcalibr-RFds'), 
+    # name = 'models',
+    values=c('chartreuse2','forestgreen',
+             'lightseagreen','midnightblue'))+
+  scale_color_manual(
+    # labels = c('PCRun', 'PCRun-RFd', 'PCRun-RFds', 
+    #            'PCRcalibr', 'PCRcalibr-RFd','PCRcalibr-RFds'), 
+    # name = 'models',
+    values=c('olivedrab1', 'cadetblue1'))+
   labs(title = 'Model performance at different stations', 
        subtitle = '1991-2000 (test period)', 
        y='GOF value',
-       color=paste0('PCR-GLOBWB \nwithout RF-correction'), 
-       fill=paste0('Model configurations\n','PCR-RF'))
+       color=paste0('PCR without RF-correction'), 
+       fill=paste0('Model configurations'))
 ggsave('../graph/RFresult_all/gof_abs_new_test.tiff', dpi = 300,
-       width = 6, height = 6)
+       width = 8, height = 6)
 
-
+#------train----------
 ggplot(data = eval_allG %>% 
          filter(datatype=='train') %>% 
          filter(grepl('corrected', gof)) %>% 
@@ -186,10 +144,11 @@ ggplot(data = eval_allG %>%
   facet_grid(gof~., scale='fixed')+
   theme_light()+
   theme(
-    axis.text.y = element_text(size = 12),
+    axis.text.y = element_text(size = 14),
     # axis.text.y = element_blank(),
-    axis.title = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(size = 14),
     strip.text.x = element_text(size = 15, color = 'black'),
     strip.background = element_rect(colour = "grey", fill = "white"),
     strip.text.y = element_text(size = 15, color = 'black'),
@@ -197,16 +156,18 @@ ggplot(data = eval_allG %>%
     # strip.text = element_blank(),
     title = element_text(size = 17),
     plot.subtitle = element_text(size = 15),
-    legend.text = element_text(size = 12),
-    legend.title = element_text(size = 15),)+
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 14)
+    # legend.position = 'bottom'
+  )+
   scale_fill_manual(values=c('chartreuse2','forestgreen',
                              'lightseagreen','midnightblue'))+
   scale_color_manual(values=c('olivedrab1', 'cadetblue1'))+
   labs(title = 'Model performance at different stations', 
        subtitle = '1981-1990 (train period)', 
        y='GOF value',
-       color=paste0('PCR-GLOBWB \nwithout RF-correction'), 
-       fill=paste0('Model configurations\n','PCR-RF'))
+       color=paste0('PCR without RF-correction'), 
+       fill=paste0('Model configurations'))
 ggsave('../graph/RFresult_all/gof_abs_new_train.tiff', dpi = 300,
        width = 6, height = 6)
 #-------------Variable importance-------------
@@ -352,6 +313,60 @@ dev.off()
     
 
 #-----------archive--------
+
+# ggplot(data = eval_allG %>% 
+#          filter(grepl('corrected', gof)) %>% 
+#          mutate(gof=sub('_corrected','', gof)) %>% 
+#          mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
+#                                            'nRMSE','nMAE'))), 
+#        aes(x=station, y=value, fill=config))+
+#   geom_col(position = 'dodge')+
+#   facet_grid(gof~datatype, scale='free')+
+#   theme_gray(base_size = 16)+
+#   scale_fill_manual(values=c('olivedrab2','olivedrab',
+#                              'lightskyblue','midnightblue'))+
+#   labs(title = 'Model performance at different stations', y='GOF value')
+# ggsave('../graph/RFresult_all/gof_abs.tiff', dpi = 300,
+#        width = 8, height = 7)
+
+# ggplot(data = eval_allG %>% 
+#          filter(grepl('corrected', gof)) %>% 
+#          mutate(gof=sub('_corrected','', gof)) %>% 
+#          mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
+#                                            'nRMSE','nMAE'))), 
+#        aes(x=station, y=value, fill=config))+
+#   geom_col(position = 'dodge')+
+#   #pure PCR model
+#   geom_col(data = eval_allG %>% 
+#              filter(!grepl('corrected', gof)) %>% 
+#              mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
+#                                                'nRMSE','nMAE'))), 
+#            aes(x=station, y=value, col=pcr_config), 
+#            position = 'dodge', fill='transparent', lwd=1.1)+
+#   facet_grid(gof~datatype, scale='free')+
+#   theme_light()+
+#   theme(
+#     axis.text.y = element_text(size = 12),
+#     # axis.text.y = element_blank(),
+#     axis.title = element_text(size = 12),
+#     axis.text.x = element_text(size = 12),
+#     strip.text.x = element_text(size = 15, color = 'black'),
+#     strip.background = element_rect(colour = "grey", fill = "white"),
+#     strip.text.y = element_text(size = 15, color = 'black'),
+#     # strip.background = element_blank(),
+#     # strip.text = element_blank(),
+#     title = element_text(size = 17),
+#     legend.text = element_text(size = 12),
+#     legend.title = element_text(size = 15))+
+#   scale_fill_manual(values=c('chartreuse2','forestgreen',
+#                              'lightseagreen','midnightblue'))+
+#   scale_color_manual(values=c('olivedrab1', 'cadetblue1'))+
+#   labs(title = 'Model performance at different stations', y='GOF value',
+#        color=paste0('Pure PCR-GLOBWB \nwithout RF-correction'), fill='Model configurations')
+# ggsave('../graph/RFresult_all/gof_abs_new.tiff', dpi = 300,
+#        width = 8.5, height = 7)
+
+
 
 # PCR only
 # pcr[[i]] <- rf.eval[[i]] %>% 
