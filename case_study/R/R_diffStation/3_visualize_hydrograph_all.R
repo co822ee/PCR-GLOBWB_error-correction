@@ -4,7 +4,7 @@ calibrMod <- 'uncalibrated'      # calibrated    uncalibrated
 source('function_0_loadLibrary.R')
 dir <- c(paste0('../data/analysis/benchmark/',  'result_', calibrMod,'/'), 
          paste0('../data/analysis/', 'result_', calibrMod,'/'))
-configKey <- list('PCRcalibr-RFbm','PCRun-RFbm','PCRcalibr-RF','PCRun-RF')
+configKey <- list('PCRcalibr-RFds','PCRun-RFd','PCRcalibr-RFds','PCRun-RFd')
 
 calibrL <- lapply(configKey, grepl, pattern='calibr')
 bmL <- lapply(configKey, grepl, pattern='bm')
@@ -44,14 +44,13 @@ readData <- function(i){
     list(RF_res, combine_res, plotTitle, combine, combine_res_real)
     
 }
-#hydrograph
+#-------------hydrograph---------------
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     RF_res <- t[[1]]
     combine_res <- t[[2]]
     plotTitle <- t[[3]]
     combine <- t[[4]]
-    
     
     #--------time series of streamflow (hydrograph)------------
     ts_q <- combine %>% gather(., key='Q',value='discharge',
@@ -61,7 +60,7 @@ for(i in seq_along(csvFiles[[1]])){
     p1 <- ggplot(data=ts_q %>% filter(datatype=='train'), 
                  aes(x=datetime, y=discharge, col=Q))+
         geom_line(alpha=0.7)+
-        facet_wrap(yr~., scale='free')+
+        facet_wrap(yr~., scale='fixed')+
         scale_x_date(date_labels = '%b', date_breaks = '1 month')+
         geom_vline(
             xintercept=as.numeric((combine %>% 
@@ -115,7 +114,7 @@ for(i in seq_along(csvFiles[[1]])){
     p1 <- ggplot(data=ts_res %>% filter(datatype=='train'), 
                  aes(x=datetime, y=value, col=residuals))+
         geom_line(alpha=0.7)+
-        facet_wrap(yr~., scale='free')+
+        facet_wrap(yr~., scale='fixed')+
         scale_x_date(date_labels = '%b', date_breaks = '1 month')+
         geom_vline(
             xintercept=as.numeric((combine_res %>% 
