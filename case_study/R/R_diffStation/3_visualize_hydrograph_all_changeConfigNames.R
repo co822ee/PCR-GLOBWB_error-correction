@@ -1,4 +1,4 @@
-calibrMod <- 'calibrated'      # calibrated    uncalibrated
+calibrMod <- 'uncalibrated'      # calibrated    uncalibrated
 # station_i <- 2                         # station id
 
 source('function_0_loadLibrary.R')
@@ -122,14 +122,16 @@ for(i in seq_along(csvFiles[[1]])){
         mutate(Q=factor(Q, levels = c('res','RFd','RFds')))
     
     p1%+%(ts_res %>% filter(datatype=='train'))+
-        labs(title=paste0(plotTitle, ': train period (1981-1990)'))+
+        labs(title=paste0(plotTitle, ': train period (1981-1990)'),
+             y='residual (m/d)')+
         geom_abline(intercept = 0, slope = 0, color='grey',lty=2)
     ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
                   '/res_', plotTitle, '_train.tiff'), dpi=300,
            width=12, height=6)
     
     p1%+%(ts_res %>% filter(datatype=='test'))+
-        labs(title=paste0(plotTitle, ': test period (1991-2000)'))+
+        labs(title=paste0(plotTitle, ': test period (1991-2000)'),
+             y='residual (m/d)')+
         geom_abline(intercept = 0, slope = 0, color='grey',lty=2)
     ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
                   '/res_', plotTitle, '_test.tiff'), dpi=300,
@@ -303,6 +305,8 @@ for(i in seq_along(csvFiles[[1]])){
     dev.off()
 }
 
+
+
 #scatterplot of residuals vs predictions
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
@@ -340,6 +344,7 @@ for(i in seq_along(csvFiles[[1]])){
                   'scatterplot_resVSpred_',calibrMod,'_', plotTitle, '.tiff'), dpi=300, 
            width=6, height=5.5)
 }
+
 
 #---------scatterplot of residuals vs obs-----------
 for(i in seq_along(csvFiles[[1]])){
