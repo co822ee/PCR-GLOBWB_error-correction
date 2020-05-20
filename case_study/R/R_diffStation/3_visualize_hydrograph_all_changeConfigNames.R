@@ -1,4 +1,4 @@
-calibrMod <- 'uncalibrated'      # calibrated    uncalibrated
+calibrMod <- 'calibrated'      # calibrated    uncalibrated
 # station_i <- 2                         # station id
 
 source('function_0_loadLibrary.R')
@@ -45,11 +45,11 @@ readData <- function(i){
     combine_res_real <- combine %>% mutate(RFd=obs-RFd, RFds=obs-RFds)
     list(combine, combine_res, combine_res_real, plotTitle)
 }
-#-------------hydrograph---------------
+#-------------hydrograph (RF only)---------------
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     combine <- t[[1]]
-    combine_res <- t[[2]]
+    # combine_res <- t[[2]]
     combine_res_real <- t[[3]]
     plotTitle <- t[[4]]
     
@@ -58,80 +58,117 @@ for(i in seq_along(csvFiles[[1]])){
                                  c('obs','RFds','RFd')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
         mutate(Q=factor(Q, levels = c('obs','RFd','RFds')))
-    # p1 <- ggplot(data=ts_q %>% filter(datatype=='train'), 
-    #              aes(x=datetime, y=discharge, col=Q))+
-    #     geom_line(lwd=0.8)+
-    #     facet_wrap(yr~., scale='free_x')+
-    #     scale_x_date(date_labels = '%m', date_breaks = '1 month')+
-    #     geom_vline(
-    #         xintercept=as.numeric((combine %>% 
-    #                                    filter(grepl('-05-01', datetime)))$datetime), lty=2)+
-    #     geom_vline(
-    #         xintercept=as.numeric((combine %>% 
-    #                                    filter(grepl('-10-01', datetime)))$datetime), lty=2)+
-    #     labs(title=paste0(plotTitle, ': train period (1981-1990)'), 
-    #          subtitle = calibrMod,
-    #          y='discharge (m/d)',
-    #          x='month')+
-    #     theme_linedraw()+
-    #     theme(
-    #         axis.text.y = element_text(size = 7),
-    #         # axis.text.y = element_blank(),
-    #         axis.title.x = element_text(size = 10),
-    #         axis.title.y = element_text(size = 10),
-    #         axis.text.x = element_text(size = 7),
-    #         strip.text.x = element_text(size = 10, color = 'black'),
-    #         strip.background = element_rect(colour = "transparent", fill = "white"),
-    #         strip.text.y = element_text(size = 10, color = 'black'),
-    #         # panel.margin=unit(.05, "lines"),
-    #         panel.grid.major = element_blank(),
-    #         panel.grid.minor = element_blank(),
-    #         # strip.background = element_blank(),
-    #         # strip.text = element_blank(),
-    #         title = element_text(size = 15),
-    #         plot.subtitle = element_text(size = 12),
-    #         legend.text = element_text(size = 12),
-    #         legend.title = element_text(size = 12))+
-    #     scale_colour_manual(values=c('black','#F0E442','#D55E00'))
-    # 
-    # p2 <- p1%+%(ts_q %>% filter(datatype=='test'))+
-    #     labs(title=paste0(plotTitle, ': test period (1991-2000)'))
-    # 
-    # # p1%+%(ts_q %>% filter(datatype=='test', yr%in%(1997:2000)))
-    # 
-    # print(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-    #              '/discharge_', plotTitle, '_train.tiff'))
-    # p1 %>% print
-    # ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-    #               '/discharge_', plotTitle, '_train.tiff'), dpi=300, 
-    #        width=12, height=6)
-    # 
-    # print(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-    #              '/discharge_', plotTitle, '_test.tiff'))
-    # p2 %>% print
-    # ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-    #               '/discharge_', plotTitle, '_test.tiff'), dpi=300, 
-    #        width=12, height=6)
+    p1 <- ggplot(data=ts_q %>% filter(datatype=='train'),
+                 aes(x=datetime, y=discharge, col=Q))+
+        geom_line(lwd=0.65)+
+        facet_wrap(yr~., scale='free_x')+
+        scale_x_date(date_labels = '%m', date_breaks = '1 month')+
+        # geom_vline(
+        #     xintercept=as.numeric((combine %>%
+        #                                filter(grepl('-05-01', datetime)))$datetime), 
+        #     lty=2, color='grey')+
+        # geom_vline(
+        #     xintercept=as.numeric((combine %>%
+        #                                filter(grepl('-10-01', datetime)))$datetime), 
+        #     lty=2, color='grey')+
+        labs(title=paste0(plotTitle, ': train period (1981-1990)'),
+             subtitle = calibrMod,
+             y='discharge (m/d)',
+             x='month')+
+        theme_linedraw()+
+        theme(
+            axis.text.y = element_text(size = 7),
+            # axis.text.y = element_blank(),
+            axis.title.x = element_text(size = 10),
+            axis.title.y = element_text(size = 10),
+            axis.text.x = element_text(size = 7),
+            strip.text.x = element_text(size = 10, color = 'black'),
+            strip.background = element_rect(colour = "transparent", fill = "white"),
+            strip.text.y = element_text(size = 10, color = 'black'),
+            # panel.margin=unit(.05, "lines"),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            # strip.background = element_blank(),
+            # strip.text = element_blank(),
+            title = element_text(size = 15),
+            plot.subtitle = element_text(size = 12),
+            legend.text = element_text(size = 12),
+            legend.title = element_text(size = 12))+
+        scale_colour_manual(values=c('black','#F0E442','#D55E00'))
+
+    p2 <- p1%+%(ts_q %>% filter(datatype=='test'))+
+        labs(title=paste0(plotTitle, ': test period (1991-2000)'))
+
+    # p1%+%(ts_q %>% filter(datatype=='test', yr%in%(1997:2000)))
+
+    print(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+                 '/discharge_', plotTitle, '_train.tiff'))
+    p1 %>% print
+    ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+                  '/discharge_', plotTitle, '_train.tiff'), dpi=300,
+           width=12, height=6)
+
+    print(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+                 '/discharge_', plotTitle, '_test.tiff'))
+    p2 %>% print
+    ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+                  '/discharge_', plotTitle, '_test.tiff'), dpi=300,
+           width=12, height=6)
     
+    #-----------time series of residuals----------
+    ts_res <- combine_res_real %>% gather(., key='Q',value='discharge',
+                                          c('res','RFds','RFd')) %>%
+        mutate(datetime=as.Date(datetime)) %>%
+        mutate(Q=factor(Q, levels = c('res','RFd','RFds')))
     
+    p1%+%(ts_res %>% filter(datatype=='train'))+
+        labs(title=paste0(plotTitle, ': train period (1981-1990)'))+
+        geom_abline(intercept = 0, slope = 0, color='grey',lty=2)
+    ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+                  '/res_', plotTitle, '_train.tiff'), dpi=300,
+           width=12, height=6)
+    
+    p1%+%(ts_res %>% filter(datatype=='test'))+
+        labs(title=paste0(plotTitle, ': test period (1991-2000)'))+
+        geom_abline(intercept = 0, slope = 0, color='grey',lty=2)
+    ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+                  '/res_', plotTitle, '_test.tiff'), dpi=300,
+           width=12, height=6)
+}
+
+#------ partial time series--------
+for(i in seq_along(csvFiles[[1]])){
+    t <- readData(i)
+    combine <- t[[1]]
+    # combine_res <- t[[2]]
+    combine_res_real <- t[[3]]
+    plotTitle <- t[[4]]
+    
+    ts_q <- combine %>% gather(., key='Q',value='discharge',
+                               c('obs','RFds','RFd')) %>% 
+        mutate(datetime=as.Date(datetime)) %>% 
+        mutate(Q=factor(Q, levels = c('obs','RFd','RFds')))
     #------partial time series of discharge------
     test_p1 <- ggplot(data=ts_q %>% filter(datatype=='test', yr%in%(1991:1992)),
                       aes(x=datetime, y=discharge, col=Q))+
         geom_line(lwd=0.8)+
         # facet_wrap(yr~., scale='free_x')+
-        scale_x_date(date_labels = '%Y-%m-%d', 
-                     breaks = c('1991-01-01','1991-05-01','1991-10-01',
-                                '1992-05-01','1992-10-01','1992-12-31') %>% as.Date(),
+        scale_x_date(date_labels = '%Y-%m', 
+                     date_breaks = '3 month',
+                     # breaks = c('1991-01-01','1991-05-01','1991-10-01',
+                     #            '1992-05-01','1992-10-01','1992-12-31') %>% as.Date(),
                      expand = c(0,0))+   #, date_breaks = '3 month'
-    
-        # geom_vline(
-        #     xintercept=as.numeric((combine %>% 
-        #                                filter(grepl('-05-01', datetime)))$datetime), lty=2)+
-        # geom_vline(
-        #     xintercept=as.numeric((combine %>% 
-        #                                filter(grepl('-10-01', datetime)))$datetime), lty=2)+
+        
+        geom_vline(
+            xintercept=as.numeric((combine %>%
+                                       filter(grepl('-05-01', datetime)))$datetime), 
+            lty=2, color='grey')+
+        geom_vline(
+            xintercept=as.numeric((combine %>%
+                                       filter(grepl('-10-01', datetime)))$datetime), 
+            lty=2, color='grey')+
         labs(title=paste0(plotTitle), 
-             subtitle = calibrMod,
+             subtitle = paste0(calibrMod,' (test period)'),
              y='discharge (m/d)',
              x='month')+
         theme_linedraw()+
@@ -159,18 +196,18 @@ for(i in seq_along(csvFiles[[1]])){
             legend.title=element_blank(),
             legend.text = element_text(size = 12))+
         scale_colour_manual(values=c('black','#F0E442','#D55E00'))+
-        lims(y=c(0,0.0125))
+        lims(y=c(0,0.009))
     
     testp2 <- test_p1%+%(ts_q %>% filter(datatype=='test', yr%in%(1993:1994)))+
-        scale_x_date(date_labels = '%Y-%m-%d', 
-                     breaks = c('1993-01-01','1993-05-01','1993-10-01',
-                                '1994-05-01','1994-10-01','1994-12-31') %>% as.Date(),
-                     expand = c(0,0))+
+        # scale_x_date(date_labels = '%Y-%m-%d', 
+        #              breaks = c('1993-01-01','1993-05-01','1993-10-01',
+        #                         '1994-05-01','1994-10-01','1994-12-31') %>% as.Date(),
+        #              expand = c(0,0))+
         theme(title = element_blank(),
               plot.subtitle = element_blank(),
               legend.position = 'none',
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
-        lims(y=c(0,0.0125))
+        lims(y=c(0,0.009))
     
     tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
                 '/F_discharge_', plotTitle, '_test.tiff'), res = 300, units = 'in',
@@ -179,23 +216,24 @@ for(i in seq_along(csvFiles[[1]])){
     dev.off()
     
     trainp1 <- test_p1%+%(ts_q %>% filter(datatype=='train', yr%in%(1987:1988)))+
-        scale_x_date(date_labels = '%Y-%m-%d', 
-                     breaks = c('1987-01-01','1987-05-01','1987-10-01',
-                                '1988-05-01','1988-10-01','1988-12-31') %>% as.Date(),
-                     expand = c(0,0))+
+        # scale_x_date(date_labels = '%Y-%m-%d', 
+        #              breaks = c('1987-01-01','1987-05-01','1987-10-01',
+        #                         '1988-05-01','1988-10-01','1988-12-31') %>% as.Date(),
+        #              expand = c(0,0))+
         theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
-        lims(y=c(0,0.0125))
+        labs(subtitle = paste0(calibrMod,' (train period)'))+
+        lims(y=c(0,0.009))
     
     trainp2 <- trainp1%+%(ts_q %>% filter(datatype=='train', yr%in%(1989:1990)))+
-        scale_x_date(date_labels = '%Y-%m-%d', 
-                     breaks = c('1989-01-01','1989-05-01','1989-10-01',
-                                '1990-05-01','1990-10-01','1990-12-31') %>% as.Date(),
-                     expand = c(0,0))+
+        # scale_x_date(date_labels = '%Y-%m-%d', 
+        #              breaks = c('1989-01-01','1989-05-01','1989-10-01',
+        #                         '1990-05-01','1990-10-01','1990-12-31') %>% as.Date(),
+        #              expand = c(0,0))+
         theme(title = element_blank(),
               plot.subtitle = element_blank(),
               legend.position = 'none',
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
-        lims(y=c(0,0.0125))
+        lims(y=c(0,0.009))
     
     tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
                 '/F_discharge_', plotTitle, '_train.tiff'), res = 300, units = 'in',
@@ -203,59 +241,66 @@ for(i in seq_along(csvFiles[[1]])){
     grid.arrange(trainp1, trainp2)
     dev.off()
     
-    #--------time series of residuals------------
-    # ts_res <- combine_res %>% gather(., key='residuals',value='value',
-    #                                c('res','RF','RFbm')) %>% 
-    #     mutate(datetime=as.Date(datetime)) %>% 
-    #     mutate(residuals=factor(residuals, levels = c('res','RFbm','RF')))
-    # 
-    # p1 <- ggplot(data=ts_res %>% filter(datatype=='train'), 
-    #              aes(x=datetime, y=value, col=residuals))+
-    #     geom_line(alpha=0.7)+
-    #     facet_wrap(yr~., scale='fixed')+
-    #     scale_x_date(date_labels = '%b', date_breaks = '1 month')+
-    #     geom_vline(
-    #         xintercept=as.numeric((combine_res %>% 
-    #                                    filter(grepl('-05-01', datetime)))$datetime), lty=2)+
-    #     geom_vline(
-    #         xintercept=as.numeric((combine_res %>% 
-    #                                    filter(grepl('-10-01', datetime)))$datetime), lty=2)+
-    #     labs(title=paste0(plotTitle, ': train period (1981-1990)'), 
-    #          y='residuals (cms)')+
-    #     theme_light()+
-    #     theme(
-    #         axis.text.y = element_text(size = 7),
-    #         # axis.text.y = element_blank(),
-    #         axis.title = element_text(size = 0),
-    #         axis.text.x = element_text(size = 7),
-    #         strip.text.x = element_text(size = 10, color = 'black'),
-    #         strip.background = element_rect(colour = "transparent", fill = "white"),
-    #         strip.text.y = element_text(size = 10, color = 'black'),
-    #         # strip.background = element_blank(),
-    #         # strip.text = element_blank(),
-    #         title = element_text(size = 15),
-    #         plot.subtitle = element_text(size = 12),
-    #         legend.text = element_text(size = 12),
-    #         legend.title = element_text(size = 12))+
-    #     scale_colour_manual(values=c('black','green','blue'))
-    # 
-    # p2 <- p1%+%(ts_res %>% filter(datatype=='test'))+
-    #     labs(title=paste0(plotTitle, ': test period (1991-2000)'))
-    # 
-    # print(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-    #              '/res_', plotTitle, '_train.tiff'))
-    # p1 %>% print
-    # ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-    #               '/res_', plotTitle, '_train.tiff'), dpi=300, 
-    #        width=12, height=6)
-    # 
-    # print(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-    #              '/res_', plotTitle, '_test.tiff'))
-    # p2 %>% print
-    # ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-    #               '/res_', plotTitle, '_test.tiff'), dpi=300, 
-    #        width=12, height=6)
     
+    #--------partial time series of residuals------------
+    ts_res <- combine_res_real %>% gather(., key='Q',value='discharge',
+                                          c('res','RFds','RFd')) %>%
+        mutate(datetime=as.Date(datetime)) %>%
+        mutate(Q=factor(Q, levels = c('res','RFd','RFds')))
+    
+    testp1 <- test_p1%+%(ts_res %>% filter(datatype=='test', yr%in%(1991:1992)))+
+        # scale_x_date(date_labels = '%Y-%m-%d', 
+        #              breaks = c('1991-01-01','1991-05-01','1991-10-01',
+        #                         '1992-05-01','1992-10-01','1992-12-31') %>% as.Date(),
+        #              expand = c(0,0))+
+        theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
+        lims(y=c(-0.006,0.01))+
+        labs(y='residual (m/d)')
+    
+    testp2 <- testp1%+%(ts_res %>% filter(datatype=='test', yr%in%(1993:1994)))+
+        # scale_x_date(date_labels = '%Y-%m-%d', 
+        #              breaks = c('1993-01-01','1993-05-01','1993-10-01',
+        #                         '1994-05-01','1994-10-01','1994-12-31') %>% as.Date(),
+        #              expand = c(0,0))+
+        theme(title = element_blank(),
+              plot.subtitle = element_blank(),
+              legend.position = 'none',
+              plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
+        lims(y=c(-0.006,0.01))
+    
+    tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+                '/F_res_', plotTitle, '_test.tiff'), res = 300, units = 'in',
+         width=12, height=6)
+    grid.arrange(testp1, testp2)
+    dev.off()
+    
+    
+    trainp1 <- test_p1%+%(ts_res %>% filter(datatype=='train', yr%in%(1987:1988)))+
+        # scale_x_date(date_labels = '%Y-%m-%d', 
+        #              breaks = c('1987-01-01','1987-05-01','1987-10-01',
+        #                         '1988-05-01','1988-10-01','1988-12-31') %>% as.Date(),
+        #              expand = c(0,0))+
+        theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
+        labs(subtitle = paste0(calibrMod,' (train period)'),
+             y='residual (m/d)')+
+        lims(y=c(-0.006,0.01))
+    
+    trainp2 <- trainp1%+%(ts_res %>% filter(datatype=='train', yr%in%(1989:1990)))+
+        # scale_x_date(date_labels = '%Y-%m-%d', 
+        #              breaks = c('1989-01-01','1989-05-01','1989-10-01',
+        #                         '1990-05-01','1990-10-01','1990-12-31') %>% as.Date(),
+        #              expand = c(0,0),
+        #              date_minor_breaks = "3 month")+
+        theme(title = element_blank(),
+              plot.subtitle = element_blank(),
+              legend.position = 'none',
+              plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
+        lims(y=c(-0.006,0.01))
+    tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+                '/F_res_', plotTitle, '_train.tiff'), res = 300, units = 'in',
+         width=12, height=6)
+    grid.arrange(trainp1, trainp2)
+    dev.off()
 }
 
 #scatterplot of residuals vs predictions
@@ -295,6 +340,7 @@ for(i in seq_along(csvFiles[[1]])){
                   'scatterplot_resVSpred_',calibrMod,'_', plotTitle, '.tiff'), dpi=300, 
            width=6, height=5.5)
 }
+
 #---------scatterplot of residuals vs obs-----------
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
