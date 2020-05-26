@@ -2,7 +2,7 @@ source('function_0_loadLibrary.R')
 # source('function_2_RF_0_setUpDirectory.R')
 dir <- c(paste0('../data/analysis/benchmark/', c('result_calibrated/', 'result_uncalibrated/')), 
   paste0('../data/analysis/', c('result_calibrated/', 'result_uncalibrated/'))) %>% as.list
-configKey <- list('PCRcalibr-RFbm','PCRun-RFbm','PCRcalibr-RF','PCRun-RF')
+configKey <- list('PCRcalibr-RFd','PCRun-RFd','PCRcalibr-RFds','PCRun-RFds')
 
 calibrL <- lapply(configKey, grepl, pattern='calibr')
 bmL <- lapply(configKey, grepl, pattern='bm')
@@ -22,45 +22,15 @@ for(i in seq_along(rf.eval)){
 }
 eval_all <- do.call(rbind, rf.eval) %>% 
   mutate(config=config %>% 
-           factor(., levels = c('PCRun-RFbm','PCRun-RF', 
-                                'PCRcalibr-RFbm','PCRcalibr-RF'))) %>% 
+           factor(., levels = c('PCRun-RFd','PCRun-RFds', 
+                                'PCRcalibr-RFd','PCRcalibr-RFds'))) %>% 
   mutate(station=factor(station, levels=c('Basel','Lobith','Cochem'))) %>% 
   mutate(plotTitle=factor(plotTitle, levels = c('Basel (Rhine)','Lobith (Rhine)',
                                                 'Cochem (Moselle)'))) %>% 
-  select(-nMAE, -nMAE_corrected)
+  select(-nMAE, -nMAE_corrected, -Rsquared, -Rsquared_corrected)
 # eval_all %>% gather(., 'key','value', c('KGE','nRMSE', 'nMAE', 'Rsquared'))
 
 #----------- GOF: Only corrected--------------
-## Model performance improvement relative to the PCR-GLOBWB without bias correction by RF.
-## 
-eval_all_r <-       
-    (eval_all %>% select(matches('corrected'))-(eval_all %>% select('KGE','NSE','nRMSE','Rsquared')))/(eval_all %>% select('KGE','NSE','nRMSE','Rsquared'))*100
-names(eval_all_r) <- eval_all_r %>% names() %>% lapply(., sub, pattern='_corrected',replacement='') %>% unlist
-eval_all_r <- ((eval_all_r %>% t())*c(1,1,-1,1)) %>% t() %>% as.data.frame()
-eval_all_r <- eval_all_r %>% 
-    mutate(datatype=eval_all$datatype,
-           station=eval_all$station,
-           plotTitle=eval_all$plotTitle,
-           config=eval_all$config) %>% 
-  mutate(rf_config=ifelse(grepl('bm', config), 'benchmark', 'RF_pcrState'),
-         calibr_config=ifelse(grepl('calibr', config), 'PCR_calibr', 'PCR_uncalibr'))
-eval_all_rG <- 
-  gather(eval_all_r, 'GOF', 'value', 
-         c('KGE','NSE','nRMSE','Rsquared')) %>% 
-  mutate(GOF=factor(GOF, levels = c('KGE','NSE','Rsquared',
-                                    'nRMSE')))
-ggplot(data = eval_all_rG, 
-       aes(x=station, y=value, fill=config))+
-    geom_col(position = 'dodge')+
-    facet_grid(GOF~datatype, scale='free')+
-    theme_gray(base_size = 16)+
-    scale_fill_manual(values=c('olivedrab2','olivedrab',
-                               'lightskyblue','midnightblue'))+
-    labs(title = 'Model performance at different stations', 
-         y=paste0('relative improvement of GOF value (%) \n compared to pure PCR predictions'))
-ggsave('../graph/RFresult_all/gof_rel.tiff', dpi = 300,
-       width = 8, height = 7)
-
 #------- Model performance --------
 eval_allG <- eval_all %>% 
     gather(., 'gof','value', -c('datatype','station', 'plotTitle', 
@@ -120,7 +90,7 @@ ggplot(data = eval_allG %>%
        subtitle = '1991-2000 (test period)', 
        y='GOF value',
        color=paste0('PCR without RF-correction'), 
-       fill=paste0('Model configurations'))
+       fill=paste0('Models'))
 ggsave('../graph/RFresult_all/gof_abs_new_test.tiff', dpi = 300,
        width = 8, height = 6)
 
@@ -167,9 +137,9 @@ ggplot(data = eval_allG %>%
        subtitle = '1981-1990 (train period)', 
        y='GOF value',
        color=paste0('PCR without RF-correction'), 
-       fill=paste0('Model configurations'))
+       fill=paste0('Models'))
 ggsave('../graph/RFresult_all/gof_abs_new_train.tiff', dpi = 300,
-       width = 6, height = 6)
+       width = 8, height = 6)
 #-------------Variable importance-------------
 fileName <- lapply(dir, list.files, pattern='importance')[[1]]
 csvFiles <- lapply(dir, paste0, fileName)
@@ -313,6 +283,35 @@ dev.off()
     
 
 #-----------archive--------
+## Model performance improvement relative to the PCR-GLOBWB without bias correction by RF.
+## 
+# eval_all_r <-       
+#   (eval_all %>% select(matches('corrected'))-(eval_all %>% select('KGE','NSE','nRMSE','Rsquared')))/(eval_all %>% select('KGE','NSE','nRMSE','Rsquared'))*100
+# names(eval_all_r) <- eval_all_r %>% names() %>% lapply(., sub, pattern='_corrected',replacement='') %>% unlist
+# eval_all_r <- ((eval_all_r %>% t())*c(1,1,-1,1)) %>% t() %>% as.data.frame()
+# eval_all_r <- eval_all_r %>% 
+#   mutate(datatype=eval_all$datatype,
+#          station=eval_all$station,
+#          plotTitle=eval_all$plotTitle,
+#          config=eval_all$config) %>% 
+#   mutate(rf_config=ifelse(grepl('bm', config), 'benchmark', 'RF_pcrState'),
+#          calibr_config=ifelse(grepl('calibr', config), 'PCR_calibr', 'PCR_uncalibr'))
+# eval_all_rG <- 
+#   gather(eval_all_r, 'GOF', 'value', 
+#          c('KGE','NSE','nRMSE','Rsquared')) %>% 
+#   mutate(GOF=factor(GOF, levels = c('KGE','NSE','Rsquared',
+#                                     'nRMSE')))
+# ggplot(data = eval_all_rG, 
+#        aes(x=station, y=value, fill=config))+
+#   geom_col(position = 'dodge')+
+#   facet_grid(GOF~datatype, scale='free')+
+#   theme_gray(base_size = 16)+
+#   scale_fill_manual(values=c('olivedrab2','olivedrab',
+#                              'lightskyblue','midnightblue'))+
+#   labs(title = 'Model performance at different stations', 
+#        y=paste0('relative improvement of GOF value (%) \n compared to pure PCR predictions'))
+# ggsave('../graph/RFresult_all/gof_rel.tiff', dpi = 300,
+#        width = 8, height = 7)
 
 # ggplot(data = eval_allG %>% 
 #          filter(grepl('corrected', gof)) %>% 
