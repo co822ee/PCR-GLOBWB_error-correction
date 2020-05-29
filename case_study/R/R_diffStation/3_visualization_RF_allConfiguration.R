@@ -150,9 +150,9 @@ stationInfo <- read.csv('../data/rawData/stationLatLon.csv') %>%
   mutate(plotName=plotName %>% as.character())
 station <- list.files('../data/preprocess/calibrated/','pcr_') %>% 
   sapply(., function(x) substr(x, 5, nchar(x)-4)) %>% as.character()
-stationInfo <- stationInfo[(stationInfo$station %>% tolower)%in%station,] #%>% 
-  # mutate(station=factor(station, levels = c('Basel', 'Lobith', 'Cochem')))
-station <- factor(c('Basel', 'Lobith', 'Cochem')) #, levels = c('Basel', 'Lobith', 'Cochem'))
+stationInfo <- stationInfo[(stationInfo$station %>% tolower)%in%station,] %>% 
+  mutate(station=factor(station, levels = c('Basel', 'Cochem', 'Lobith')))
+station <- factor(c('Basel', 'Lobith', 'Cochem') , levels = c('Basel', 'Cochem', 'Lobith'))
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
 
