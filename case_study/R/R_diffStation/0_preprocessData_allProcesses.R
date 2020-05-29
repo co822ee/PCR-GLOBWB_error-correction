@@ -1,4 +1,4 @@
-calibrMod <- 'calibrated'      #calibrated
+calibrMod <- 'calibrated'      # calibrated uncalibrated
 source('0_preprocessData_discharge.R')
 source('0_preprocessData_predictor.R')
 source('0_preprocessData_date.R')

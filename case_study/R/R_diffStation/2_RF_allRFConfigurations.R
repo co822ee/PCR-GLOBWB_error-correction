@@ -4,6 +4,7 @@ calibrMod <- 'calibrated'      # calibrated    uncalibrated
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
 # plotTitle <- stationInfo$plotName[station_i]
+repeatCV <- 3
 repeatedCV <- F # whether repeated two-fold cv
 benchmark <- F  # benchmark model or not
 
@@ -16,13 +17,13 @@ optParam <- matrix(NA, nrow=length(station), ncol=7)   # there are 7 columns ret
 #--------------RF---------------
 # self-note: this script comes from the 2_RF_excludeChannelStorage.R (20200511).
 #-----------1. Tune parameter---------------
-# for(station_i in seq_along(station)){
-#     source(paste0('function_1_readData_excludeChannelStorage', R_B_end))
-#     print(station[station_i])
-# 
-#     repeatCV <- 3
-#     source(paste0('function_2_RF_1_tuneParameter', R_end))
-# }
+for(station_i in seq_along(station)){
+    source(paste0('function_1_readData_excludeChannelStorage', R_B_end))
+    print(station[station_i])
+
+    
+    source(paste0('function_2_RF_1_tuneParameter', R_end))
+}
 
 #------------2. Determine optimal parameter----------
 # call function determineParam(): 
