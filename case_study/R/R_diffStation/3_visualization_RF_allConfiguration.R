@@ -5,7 +5,7 @@ dir <- c(paste0('../data/analysis/benchmark/', c('result_calibrated/', 'result_u
 configKey <- list('PCRcalibr-RFd','PCRun-RFd','PCRcalibr-RFds','PCRun-RFds')
 
 calibrL <- lapply(configKey, grepl, pattern='calibr')
-bmL <- lapply(configKey, grepl, pattern='bm')
+bmL <- list(T,T,F,F)
 
 lapply(dir, list.files, pattern='rf_eval')
 csvFiles <- lapply(dir, paste0, '/rf_eval_r.csv')
@@ -152,7 +152,7 @@ station <- list.files('../data/preprocess/calibrated/','pcr_') %>%
   sapply(., function(x) substr(x, 5, nchar(x)-4)) %>% as.character()
 stationInfo <- stationInfo[(stationInfo$station %>% tolower)%in%station,] %>% 
   mutate(station=factor(station, levels = c('Basel', 'Cochem', 'Lobith')))
-station <- factor(c('Basel', 'Lobith', 'Cochem') , levels = c('Basel', 'Cochem', 'Lobith'))
+station <- factor(c('Basel', 'Cochem', 'Lobith') , levels = c('Basel', 'Cochem', 'Lobith'))
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
 

@@ -4,10 +4,7 @@ calibrMod <- 'uncalibrated'      # calibrated    uncalibrated
 source('function_0_loadLibrary.R')
 dir <- c(paste0('../data/analysis/benchmark/',  'result_', calibrMod,'/'), 
          paste0('../data/analysis/', 'result_', calibrMod,'/'))
-configKey <- list('PCRcalibr-RFds','PCRun-RFd','PCRcalibr-RFds','PCRun-RFd')
 
-calibrL <- lapply(configKey, grepl, pattern='calibr')
-bmL <- list(F,T,F,T)
 files <- lapply(dir, list.files, pattern='rf_result')
 
 stationInfo <- read.csv('../data/rawData/stationLatLon.csv')
