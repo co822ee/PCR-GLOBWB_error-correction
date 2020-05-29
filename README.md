@@ -1,7 +1,7 @@
 Here includes all the scripts for modelling and analysis for the research where random forests serve as error-correction model for PCR-GLOBWB streamflow predictions. This topic was my MSc guided research at Utrecht University under the supervision of Prof. Dr. Derek Karssenberg and Dr. Meng Lu. This project was collaborated with one fellow MSc student, Jessica Ruijsch, who ran the PCR-GLOBWB model. 
 
 [Still in process]
-In the folder of case_study/R/R_diffStation gives all the reproducible R scripts for my research project. 
+The folder of case_study/R/R_diffStation gives all the reproducible R scripts for my research project. 
 
 ## Data preprocessing
 
