@@ -5,7 +5,7 @@ if(calibrMod=='calibrated'){
     station <- list.files('../data/preprocess/calibrated/','pcr_') %>% 
         sapply(., function(x) substr(x, 5, nchar(x)-4)) %>% as.character()
     stationInfo <- stationInfo[(stationInfo$station %>% tolower)%in%station,] %>% 
-        mutate(station=factor(station, levels = c('Basel', 'Lobith', 'Cochem')))
+        mutate(station=factor(station, levels = c('Basel', 'Cochem', 'Lobith')))
     station <- stationInfo$station
     # stationOrder <- c(1,3,2)
 }else{
@@ -19,7 +19,7 @@ if(calibrMod=='calibrated'){
     station <- list.files('../data/preprocess/calibrated/','pcr_') %>% 
         sapply(., function(x) substr(x, 5, nchar(x)-4)) %>% as.character()
     stationInfo <- stationInfo[(stationInfo$station %>% tolower)%in%station,] %>% 
-        mutate(station=factor(station, levels = c('Basel', 'Lobith', 'Cochem')))
+        mutate(station=factor(station, levels = c('Basel', 'Cochem', 'Lobith')))
     station <- stationInfo$station
     # stationOrder <- c(1,3,2)
 }
