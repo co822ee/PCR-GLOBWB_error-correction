@@ -24,9 +24,9 @@ eval_all <- do.call(rbind, rf.eval) %>%
   mutate(config=config %>% 
            factor(., levels = c('PCRun-RFd','PCRun-RFds', 
                                 'PCRcalibr-RFd','PCRcalibr-RFds'))) %>% 
-  mutate(station=factor(station, levels=c('Basel','Lobith','Cochem'))) %>% 
-  mutate(plotTitle=factor(plotTitle, levels = c('Basel (Rhine)','Lobith (Rhine)',
-                                                'Cochem (Moselle)'))) %>% 
+  # mutate(station=factor(station, levels=c('Basel','Lobith','Cochem'))) %>% 
+  # mutate(plotTitle=factor(plotTitle, levels = c('Basel (Rhine)','Lobith (Rhine)',
+  #                                               'Cochem (Moselle)'))) %>% 
   select(-nMAE, -nMAE_corrected, -Rsquared, -Rsquared_corrected)
 # eval_all %>% gather(., 'key','value', c('KGE','nRMSE', 'nMAE', 'Rsquared'))
 
@@ -150,9 +150,9 @@ stationInfo <- read.csv('../data/rawData/stationLatLon.csv') %>%
   mutate(plotName=plotName %>% as.character())
 station <- list.files('../data/preprocess/calibrated/','pcr_') %>% 
   sapply(., function(x) substr(x, 5, nchar(x)-4)) %>% as.character()
-stationInfo <- stationInfo[(stationInfo$station %>% tolower)%in%station,] %>% 
-  mutate(station=factor(station, levels = c('Basel', 'Lobith', 'Cochem')))
-station <- factor(c('Basel', 'Lobith', 'Cochem'), levels = c('Basel', 'Lobith', 'Cochem'))
+stationInfo <- stationInfo[(stationInfo$station %>% tolower)%in%station,] #%>% 
+  # mutate(station=factor(station, levels = c('Basel', 'Lobith', 'Cochem')))
+station <- factor(c('Basel', 'Lobith', 'Cochem')) #, levels = c('Basel', 'Lobith', 'Cochem'))
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
 
