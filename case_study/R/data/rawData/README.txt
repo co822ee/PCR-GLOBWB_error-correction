@@ -1,1 +1,0 @@
-The discharge is predicted for 1901-2010, with the parameters that are best for 1981-1990 (so calibration is done for the 1981-1990 period). 

@@ -1,5 +1,9 @@
 library(elevatr)
 library(sp)
+stationInfo <- read.csv('../data/rawData/stationLatLon.csv')
+station <- list.files('../data/preprocess/calibrated/','pcr_') %>% 
+    sapply(., function(x) substr(x, 5, nchar(x)-4)) %>% as.character()
+stationInfo <- stationInfo[(stationInfo$station %>% tolower)%in%station,]
 
 prj_dd <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 "
 station_sp <- SpatialPointsDataFrame(cbind(stationInfo$y, stationInfo$x),
@@ -40,6 +44,7 @@ srtmmosaic <- do.call(mosaic, srtmList)
 # srtmmosaic2 <- mosaic(srtm_d, srtm_d2, srtm_d3, srtm_d4, fun=mean)
 # writeRaster(srtmmosaic2, '../data/rawData/dem_srtm/srtm_mosaic.tif', overwrite=T)
 # writeRaster(srtmmosaic2, '../data/rawData/dem_srtm/srtm_mosaic.grd', overwrite=T)
+# srtmmosaic2 <- raster('../data/rawData/dem_srtm/srtm_mosaic.grd')
 countBnd_c <- crop(countBnd, extent(c(5,15,46,65)))   #52
 srtmmosaic2_c <- crop(srtmmosaic2, extent(c(5,15,46,55)))
 
@@ -53,11 +58,13 @@ demMap <-
     tm_shape(countBnd_c) +
     tm_borders(col='grey')+
     tm_shape(srtmmosaic2_c)+
-    tm_raster(palette = terrain.colors(20), style = "cont")+
+    tm_raster(breaks=c(-100, 0, 10, 20, 30, 40, 50, 70, 90,
+                       150, 200, 250, 400, 800, 1000, 2000, 3000, 4000, 10000),  
+            palette = terrain.colors(18), title="Elevation", style = 'cont') +
     tm_shape(countBnd_c) +
     tm_borders(col='grey')+
     tm_shape(station_sp)+
-    tm_dots(size='area', col='red')+
+    tm_dots(col='red')+  #size='area'
     tm_text('plotName',
             xmod=1.8, ymod=0.2, size=0.5)+   #xmod=1.4, ymod=0.55
     # tm_dots('plotName', col = 'plotName', style='cat')+
