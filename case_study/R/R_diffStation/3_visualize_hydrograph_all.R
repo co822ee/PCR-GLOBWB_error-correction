@@ -49,6 +49,8 @@ for(i in seq_along(csvFiles[[1]])){
     # combine_res <- t[[2]]
     combine_res_real <- t[[3]]
     plotTitle <- t[[4]]
+    plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
+    
     
     #--------time series of streamflow (hydrograph)------------
     ts_q <- combine %>% gather(., key='Q',value='discharge',
@@ -142,6 +144,7 @@ for(i in seq_along(csvFiles[[1]])){
     # combine_res <- t[[2]]
     combine_res_real <- t[[3]]
     plotTitle <- t[[4]]
+    plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
     
     ts_q <- combine %>% gather(., key='Q',value='discharge',
                                c('obs','RFds','RFd')) %>% 
@@ -195,7 +198,8 @@ for(i in seq_along(csvFiles[[1]])){
             legend.title=element_blank(),
             legend.text = element_text(size = 12))+
         scale_colour_manual(values=c('black','#F0E442','#D55E00'))+
-        lims(y=c(0,0.009))
+        lims(y=range(ts_q %>% filter(yr%in%(1991:1994)) %>% select(discharge)))
+        # lims(y=c(0,0.009))
     
     testp2 <- test_p1%+%(ts_q %>% filter(datatype=='test', yr%in%(1993:1994)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
@@ -206,7 +210,8 @@ for(i in seq_along(csvFiles[[1]])){
               plot.subtitle = element_blank(),
               legend.position = 'none',
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
-        lims(y=c(0,0.009))
+        lims(y=range(ts_q %>% filter(yr%in%(1991:1994)) %>% select(discharge)))
+        # lims(y=c(0,0.009))
     
     tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
                 '/F_discharge_', plotTitle, '_test.tiff'), res = 300, units = 'in',
@@ -221,7 +226,8 @@ for(i in seq_along(csvFiles[[1]])){
         #              expand = c(0,0))+
         theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
         labs(subtitle = paste0(calibrMod,' (train period)'))+
-        lims(y=c(0,0.009))
+        lims(y=range(ts_q %>% filter(yr%in%(1987:1990)) %>% select(discharge)))
+        # lims(y=c(0,0.009))
     
     trainp2 <- trainp1%+%(ts_q %>% filter(datatype=='train', yr%in%(1989:1990)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
@@ -232,7 +238,8 @@ for(i in seq_along(csvFiles[[1]])){
               plot.subtitle = element_blank(),
               legend.position = 'none',
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
-        lims(y=c(0,0.009))
+        lims(y=range(ts_q %>% filter(yr%in%(1987:1990)) %>% select(discharge)))
+        # lims(y=c(0,0.009))
     
     tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
                 '/F_discharge_', plotTitle, '_train.tiff'), res = 300, units = 'in',
@@ -253,7 +260,9 @@ for(i in seq_along(csvFiles[[1]])){
         #                         '1992-05-01','1992-10-01','1992-12-31') %>% as.Date(),
         #              expand = c(0,0))+
         theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
-        lims(y=c(-0.006,0.01))+
+        geom_abline(intercept = 0, slope = 0, color='grey',lty=2)+
+        lims(y=range(ts_res %>% filter(yr%in%(1991:1994)) %>% select(discharge)))+
+        # lims(y=c(-0.006,0.01))+
         labs(y='residual (m/d)')
     
     testp2 <- testp1%+%(ts_res %>% filter(datatype=='test', yr%in%(1993:1994)))+
@@ -265,7 +274,9 @@ for(i in seq_along(csvFiles[[1]])){
               plot.subtitle = element_blank(),
               legend.position = 'none',
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
-        lims(y=c(-0.006,0.01))
+        geom_abline(intercept = 0, slope = 0, color='grey',lty=2)+
+        lims(y=range(ts_res %>% filter(yr%in%(1991:1994)) %>% select(discharge)))
+        # lims(y=c(-0.006,0.01))
     
     tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
                 '/F_res_', plotTitle, '_test.tiff'), res = 300, units = 'in',
@@ -282,7 +293,8 @@ for(i in seq_along(csvFiles[[1]])){
         theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
         labs(subtitle = paste0(calibrMod,' (train period)'),
              y='residual (m/d)')+
-        lims(y=c(-0.006,0.01))
+        lims(y=range(ts_res %>% filter(yr%in%(1987:1990)) %>% select(discharge)))
+        # lims(y=c(-0.006,0.01))
     
     trainp2 <- trainp1%+%(ts_res %>% filter(datatype=='train', yr%in%(1989:1990)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
@@ -294,7 +306,8 @@ for(i in seq_along(csvFiles[[1]])){
               plot.subtitle = element_blank(),
               legend.position = 'none',
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
-        lims(y=c(-0.006,0.01))
+        lims(y=range(ts_res %>% filter(yr%in%(1987:1990)) %>% select(discharge)))
+        # lims(y=c(-0.006,0.01))
     tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
                 '/F_res_', plotTitle, '_train.tiff'), res = 300, units = 'in',
          width=12, height=6)
@@ -348,14 +361,14 @@ for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     # RF_res <- t[[1]]
     # combine_res <- t[[2]]
-    plotTitle <- t[[3]]
-    # combine <- t[[4]]
-    combine_res_real <- t[[5]]
+    plotTitle <- t[[4]]
+    plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
+    combine_res_real <- t[[3]]
     
     ts_res <- combine_res_real %>% gather(., key='residuals',value='value',
-                                     c('res','RF','RFbm')) %>% 
+                                     c('res','RFds','RFd')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
-        mutate(residuals=factor(residuals, levels = c('res','RFbm','RF')))
+        mutate(residuals=factor(residuals, levels = c('res','RFd','RFds')))
     
     p1 <- ggplot(ts_res,
                  aes(x=obs, y=value))+
@@ -386,14 +399,14 @@ for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     # RF_res <- t[[1]]
     # combine_res <- t[[2]]
-    plotTitle <- t[[3]]
-    combine <- t[[4]]
-    # combine_res_real <- t[[5]]
+    plotTitle <- t[[4]]
+    plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
+    combine_res_real <- t[[3]]
     
     ts_res <- combine %>% gather(., key='prediction',value='value',
-                                          c('pcr','RF','RFbm')) %>% 
+                                          c('pcr','RFds','RFd')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
-        mutate(prediction=factor(prediction, levels = c('pcr','RFbm','RF')))
+        mutate(prediction=factor(prediction, levels = c('pcr','RFd','RFds')))
     
     p1 <- ggplot(ts_res,
                  aes(x=obs, y=value))+
