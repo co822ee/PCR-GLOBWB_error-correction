@@ -56,19 +56,25 @@ ggplot(data = eval_allG %>%
                                                'nRMSE','nMAE'))), 
            aes(x=station, y=value, col=pcr_config), 
            position = 'dodge', fill='transparent', lwd=1.1)+
-  facet_grid(gof~., scale='fixed')+
-  theme_light()+
+  facet_wrap(gof~., scale='free_x',ncol=1)+
+  theme_linedraw()+
+  scale_y_continuous(breaks=c(0,0.25,0.5,0.6,0.7,0.8,0.9))+
   theme(
     axis.text.y = element_text(size = 14),
     # axis.text.y = element_blank(),
     axis.title = element_text(size = 14),
     axis.title.x = element_blank(),
     axis.text.x = element_text(size = 14),
+    axis.ticks = element_line(size=1),
     strip.text.x = element_text(size = 15, color = 'black'),
-    strip.background = element_rect(colour = "grey", fill = "white"),
+    strip.background = element_rect(colour = "black", fill = "white"),
     strip.text.y = element_text(size = 15, color = 'black'),
-    # strip.background = element_blank(),
-    # strip.text = element_blank(),
+    
+    panel.spacing=unit(1.3, "lines"),
+    panel.grid.major.y = element_line(color='black', linetype=2),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+
     title = element_text(size = 17),
     plot.subtitle = element_text(size = 15),
     legend.text = element_text(size = 13),
@@ -88,11 +94,11 @@ ggplot(data = eval_allG %>%
     values=c('olivedrab1', 'cadetblue1'))+
   labs(title = 'Model performance at different stations', 
        subtitle = '1991-2000 (test period)', 
-       y='GOF value',
+       y='',
        color=paste0('PCR without RF-correction'), 
        fill=paste0('Models'))
 ggsave('../graph/RFresult_all/gof_abs_new_test.tiff', dpi = 300,
-       width = 8, height = 6)
+       width = 6.5, height = 8)
 
 #------train----------
 ggplot(data = eval_allG %>% 
@@ -111,35 +117,49 @@ ggplot(data = eval_allG %>%
                                                'nRMSE','nMAE'))), 
            aes(x=station, y=value, col=pcr_config), 
            position = 'dodge', fill='transparent', lwd=1.1)+
-  facet_grid(gof~., scale='fixed')+
-  theme_light()+
+  facet_wrap(gof~., scale='free_x',ncol=1)+
+  theme_linedraw()+
+  scale_y_continuous(breaks=c(0,0.25,0.5,0.6,0.7,0.8,0.9))+
   theme(
     axis.text.y = element_text(size = 14),
     # axis.text.y = element_blank(),
     axis.title = element_text(size = 14),
     axis.title.x = element_blank(),
     axis.text.x = element_text(size = 14),
+    axis.ticks = element_line(size=1),
     strip.text.x = element_text(size = 15, color = 'black'),
-    strip.background = element_rect(colour = "grey", fill = "white"),
+    strip.background = element_rect(colour = "black", fill = "white"),
     strip.text.y = element_text(size = 15, color = 'black'),
-    # strip.background = element_blank(),
-    # strip.text = element_blank(),
+    
+    panel.spacing=unit(1, "lines"),
+    panel.grid.major.y = element_line(color='black', linetype=2),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    
     title = element_text(size = 17),
     plot.subtitle = element_text(size = 15),
     legend.text = element_text(size = 13),
     legend.title = element_text(size = 14)
     # legend.position = 'bottom'
   )+
-  scale_fill_manual(values=c('chartreuse2','forestgreen',
-                             'lightseagreen','midnightblue'))+
-  scale_color_manual(values=c('olivedrab1', 'cadetblue1'))+
+  scale_fill_manual(
+    # labels = c('PCRun', 'PCRun-RFd', 'PCRun-RFds', 
+    #            'PCRcalibr', 'PCRcalibr-RFd','PCRcalibr-RFds'), 
+    # name = 'models',
+    values=c('chartreuse2','forestgreen',
+             'lightseagreen','midnightblue'))+
+  scale_color_manual(
+    # labels = c('PCRun', 'PCRun-RFd', 'PCRun-RFds', 
+    #            'PCRcalibr', 'PCRcalibr-RFd','PCRcalibr-RFds'), 
+    # name = 'models',
+    values=c('olivedrab1', 'cadetblue1'))+
   labs(title = 'Model performance at different stations', 
        subtitle = '1981-1990 (train period)', 
        y='GOF value',
        color=paste0('PCR without RF-correction'), 
        fill=paste0('Models'))
 ggsave('../graph/RFresult_all/gof_abs_new_train.tiff', dpi = 300,
-       width = 8, height = 6)
+       width = 6.5, height = 8)
 #-------------Variable importance-------------
 fileName <- lapply(dir, list.files, pattern='importance')[[1]]
 csvFiles <- lapply(dir, paste0, fileName)

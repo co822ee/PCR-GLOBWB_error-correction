@@ -138,6 +138,20 @@ for(i in seq_along(csvFiles[[1]])){
 #---------2 partial time series----------
 for(i in seq_along(csvFiles[[1]])){
     
+    t <- readData(i)
+    combine <- t[[1]]
+    combine_res <- t[[2]]
+    plotTitle <- t[[3]]
+    
+    #--------time series of streamflow (hydrograph)------------
+    ts_q <- combine %>% gather(., key='Q',value='discharge',
+                               c('obs','PCRcalibr','PCRun')) %>% 
+        mutate(datetime=as.Date(datetime)) %>% 
+        mutate(Q=factor(Q, levels = c('obs','PCRun','PCRcalibr')))
+    
+    r <- range(ts_q %>% filter(datatype=='test', yr%in%(1991:1994)) %>% 
+                   select(discharge))
+    
     #------partial time series of discharge------
     test_p1 <- ggplot(data=ts_q %>% filter(datatype=='test', yr%in%(1991:1992)),
                       aes(x=datetime, y=discharge, col=Q))+
@@ -186,7 +200,8 @@ for(i in seq_along(csvFiles[[1]])){
             legend.title=element_blank(),
             legend.text = element_text(size = 12))+
         scale_colour_manual(values=c('black','#F0E442','#D55E00'))+
-        lims(y=c(0,0.015))
+        lims(y=r)
+        # lims(y=c(0,0.015))
     
     testp2 <- test_p1%+%(ts_q %>% filter(datatype=='test', yr%in%(1993:1994)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
@@ -196,14 +211,18 @@ for(i in seq_along(csvFiles[[1]])){
         theme(title = element_blank(),
               plot.subtitle = element_blank(),
               legend.position = 'none',
-              plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
-        lims(y=c(0,0.015))
+              plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))
+        # lims(y=c(0,0.015))
     
     tiff(paste0('../graph/RFresult_all/timeseries_calibr-wise/',
                 '/F_discharge_', plotTitle, '_test.tiff'), res = 300, units = 'in',
          width=12, height=6)
     grid.arrange(test_p1, testp2)
     dev.off()
+    
+    
+    r <- range(ts_q %>% filter(datatype=='train', yr%in%(1987:1990)) %>% 
+                   select(discharge))
     
     trainp1 <- test_p1%+%(ts_q %>% filter(datatype=='train', yr%in%(1987:1988)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
@@ -212,7 +231,8 @@ for(i in seq_along(csvFiles[[1]])){
         #              expand = c(0,0))+
         theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
         labs(subtitle = paste0('(train period)'))+
-        lims(y=c(0,0.015))
+        lims(y=r)
+        # lims(y=c(0,0.015))
     
     trainp2 <- trainp1%+%(ts_q %>% filter(datatype=='train', yr%in%(1989:1990)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
@@ -223,7 +243,8 @@ for(i in seq_along(csvFiles[[1]])){
               plot.subtitle = element_blank(),
               legend.position = 'none',
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
-        lims(y=c(0,0.015))
+        lims(y=r)
+        # lims(y=c(0,0.015))
     
     tiff(paste0('../graph/RFresult_all/timeseries_calibr-wise',
                 '/F_discharge_', plotTitle, '_train.tiff'), res = 300, units = 'in',
@@ -233,65 +254,65 @@ for(i in seq_along(csvFiles[[1]])){
     
     
     #--------partial time series of residuals------------
-    ts_res <- combine_res %>% gather(., key='Q',value='discharge',
-                                     c('PCRun','PCRcalibr')) %>%
-        mutate(datetime=as.Date(datetime)) %>%
-        mutate(Q=factor(Q, levels = c('PCRun','PCRcalibr')))
-    
-    testp1 <- test_p1%+%(ts_res %>% filter(datatype=='test', yr%in%(1991:1992)))+
-        # scale_x_date(date_labels = '%Y-%m-%d', 
-        #              breaks = c('1991-01-01','1991-05-01','1991-10-01',
-        #                         '1992-05-01','1992-10-01','1992-12-31') %>% as.Date(),
-        #              expand = c(0,0))+
-        theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
-        scale_colour_manual(values=c('#F0E442','#D55E00'))+
-        labs(y='residual (m/d)')+
-        lims(y=c(-0.006,0.01))
-    
-    testp2 <- testp1%+%(ts_res %>% filter(datatype=='test', yr%in%(1993:1994)))+
-        # scale_x_date(date_labels = '%Y-%m-%d', 
-        #              breaks = c('1993-01-01','1993-05-01','1993-10-01',
-        #                         '1994-05-01','1994-10-01','1994-12-31') %>% as.Date(),
-        #              expand = c(0,0))+
-        theme(title = element_blank(),
-              plot.subtitle = element_blank(),
-              legend.position = 'none',
-              plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
-        lims(y=c(-0.006,0.01))
-    
-    tiff(paste0('../graph/RFresult_all/timeseries_calibr-wise',
-                '/F_res_', plotTitle, '_test.tiff'), res = 300, units = 'in',
-         width=12, height=6)
-    grid.arrange(testp1, testp2)
-    dev.off()
-    
-    
-    trainp1 <- test_p1%+%(ts_res %>% filter(datatype=='train', yr%in%(1987:1988)))+
-        # scale_x_date(date_labels = '%Y-%m-%d', 
-        #              breaks = c('1987-01-01','1987-05-01','1987-10-01',
-        #                         '1988-05-01','1988-10-01','1988-12-31') %>% as.Date(),
-        #              expand = c(0,0))+
-        theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
-        scale_colour_manual(values=c('#F0E442','#D55E00'))+
-        labs(subtitle = paste0('(train period)'),
-             y='residual (m/d)')+
-        lims(y=c(-0.006,0.01))
-    
-    trainp2 <- trainp1%+%(ts_res %>% filter(datatype=='train', yr%in%(1989:1990)))+
-        # scale_x_date(date_labels = '%Y-%m-%d', 
-        #              breaks = c('1989-01-01','1989-05-01','1989-10-01',
-        #                         '1990-05-01','1990-10-01','1990-12-31') %>% as.Date(),
-        #              expand = c(0,0),
-        #              date_minor_breaks = "3 month")+
-        theme(title = element_blank(),
-              plot.subtitle = element_blank(),
-              legend.position = 'none',
-              plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
-        lims(y=c(-0.006,0.01))
-    tiff(paste0('../graph/RFresult_all/timeseries_calibr-wise',
-                '/F_res_', plotTitle, '_train.tiff'), res = 300, units = 'in',
-         width=12, height=6)
-    grid.arrange(trainp1, trainp2)
-    dev.off()
+    # ts_res <- combine_res %>% gather(., key='Q',value='discharge',
+    #                                  c('PCRun','PCRcalibr')) %>%
+    #     mutate(datetime=as.Date(datetime)) %>%
+    #     mutate(Q=factor(Q, levels = c('PCRun','PCRcalibr')))
+    # 
+    # testp1 <- test_p1%+%(ts_res %>% filter(datatype=='test', yr%in%(1991:1992)))+
+    #     # scale_x_date(date_labels = '%Y-%m-%d', 
+    #     #              breaks = c('1991-01-01','1991-05-01','1991-10-01',
+    #     #                         '1992-05-01','1992-10-01','1992-12-31') %>% as.Date(),
+    #     #              expand = c(0,0))+
+    #     theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
+    #     scale_colour_manual(values=c('#F0E442','#D55E00'))+
+    #     labs(y='residual (m/d)')+
+    #     lims(y=c(-0.006,0.01))
+    # 
+    # testp2 <- testp1%+%(ts_res %>% filter(datatype=='test', yr%in%(1993:1994)))+
+    #     # scale_x_date(date_labels = '%Y-%m-%d', 
+    #     #              breaks = c('1993-01-01','1993-05-01','1993-10-01',
+    #     #                         '1994-05-01','1994-10-01','1994-12-31') %>% as.Date(),
+    #     #              expand = c(0,0))+
+    #     theme(title = element_blank(),
+    #           plot.subtitle = element_blank(),
+    #           legend.position = 'none',
+    #           plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
+    #     lims(y=c(-0.006,0.01))
+    # 
+    # tiff(paste0('../graph/RFresult_all/timeseries_calibr-wise',
+    #             '/F_res_', plotTitle, '_test.tiff'), res = 300, units = 'in',
+    #      width=12, height=6)
+    # grid.arrange(testp1, testp2)
+    # dev.off()
+    # 
+    # 
+    # trainp1 <- test_p1%+%(ts_res %>% filter(datatype=='train', yr%in%(1987:1988)))+
+    #     # scale_x_date(date_labels = '%Y-%m-%d', 
+    #     #              breaks = c('1987-01-01','1987-05-01','1987-10-01',
+    #     #                         '1988-05-01','1988-10-01','1988-12-31') %>% as.Date(),
+    #     #              expand = c(0,0))+
+    #     theme(plot.margin = margin(0.5,1.2,0.1,0.1,"cm"))+
+    #     scale_colour_manual(values=c('#F0E442','#D55E00'))+
+    #     labs(subtitle = paste0('(train period)'),
+    #          y='residual (m/d)')+
+    #     lims(y=c(-0.006,0.01))
+    # 
+    # trainp2 <- trainp1%+%(ts_res %>% filter(datatype=='train', yr%in%(1989:1990)))+
+    #     # scale_x_date(date_labels = '%Y-%m-%d', 
+    #     #              breaks = c('1989-01-01','1989-05-01','1989-10-01',
+    #     #                         '1990-05-01','1990-10-01','1990-12-31') %>% as.Date(),
+    #     #              expand = c(0,0),
+    #     #              date_minor_breaks = "3 month")+
+    #     theme(title = element_blank(),
+    #           plot.subtitle = element_blank(),
+    #           legend.position = 'none',
+    #           plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
+    #     lims(y=c(-0.006,0.01))
+    # tiff(paste0('../graph/RFresult_all/timeseries_calibr-wise',
+    #             '/F_res_', plotTitle, '_train.tiff'), res = 300, units = 'in',
+    #      width=12, height=6)
+    # grid.arrange(trainp1, trainp2)
+    # dev.off()
     
 }

@@ -1,4 +1,4 @@
-calibrMod <- 'uncalibrated'      # calibrated    uncalibrated
+calibrMod <- 'calibrated'      # calibrated    uncalibrated
 # station_i <- 2                         # station id
 
 source('function_0_loadLibrary.R')
@@ -395,24 +395,98 @@ for(i in seq_along(csvFiles[[1]])){
 }
 
 #---------scatterplot of predictions vs obs----------
+temp <- vector('list',length(csvFiles[[1]]))
+# only test period and show all the locations in one graph
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     # RF_res <- t[[1]]
     # combine_res <- t[[2]]
+    combine <- t[[1]]
+    plotTitle <- t[[4]]
+    # plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
+    # combine_res_real <- t[[3]]
+    
+    ts_res <- combine %>% gather(., key='prediction',value='value',
+                                 c('pcr','RFds','RFd')) %>% 
+        mutate(datetime=as.Date(datetime)) %>% 
+        mutate(prediction=factor(prediction, levels = c('pcr','RFd','RFds')))
+    temp[[i]] <- ts_res
+    temp[[i]]$plotTitle <- plotTitle
+
+}
+
+test <- do.call(rbind, temp)
+r <- c(c(range(test$value)[1], range(test$obs)[1]) %>% min,
+       c(range(test$value)[2], range(test$obs)[2]) %>% max)
+pcrCode <- ifelse(calibrMod=='uncalibrated', 'PCRun', 'PCRcalibr')
+plotDF <- test %>% 
+    filter(datatype=='test') %>% 
+    mutate(prediction=case_when(prediction=='pcr'~pcrCode,
+                                prediction=='RFd'~paste0(pcrCode, '-', prediction),
+                                prediction=='RFds'~paste0(pcrCode, '-', prediction)))
+    
+ggplot(plotDF,
+       aes(x=obs, y=value))+
+    geom_point(alpha=0.3, color='black')+
+    facet_grid(prediction~plotTitle)+
+    # geom_smooth(method = "lm", se=FALSE, formula = y~x) +
+    # stat_poly_eq(formula = y~x,
+    #              aes(label = paste(..eq.label..)),
+    #              parse = TRUE, size=4, hjust = 0, vjust = .5) +
+    stat_poly_eq(formula = y~x,
+                 aes(label = paste(..rr.label..)),
+                 parse = TRUE, size=4, hjust = 0, vjust = 0.85) +
+    # xlim(c(0,0.0045))+ylim(c(-0.0025,0.004))+
+    geom_abline(intercept=0, slope=1, lty=2, lwd=0.8,
+                color='dark grey')+
+    lims(x=r, y=r)+
+    # theme_light()+
+    theme_linedraw()+
+    theme(
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.y = element_text(size = 13),
+        # axis.text.y = element_blank(),
+        axis.title = element_text(size = 13),
+        axis.text.x = element_text(size = 13),
+        strip.text.x = element_text(size = 13, color = 'black'),
+        strip.background = element_rect(colour = "black", fill = "transparent"),
+        strip.text.y = element_text(size = 13, color = 'black'),
+        panel.spacing=unit(1, "lines"),
+        # strip.background = element_blank(),
+        # strip.text = element_blank(),
+        title = element_text(size = 15),
+        # plot.subtitle = element_text(size = 12),
+        # legend.text = element_text(size = 12),
+        # legend.title = element_text(size = 12)
+    )+
+    labs(x='observed streamflow (m/d)', y='simulated streamflow (m/d)')
+ggsave(paste0('../graph/RFresult_all/', 
+              'scatterplot_predVSobs_',calibrMod, '_all.tiff'), dpi=300, 
+       width=9, height=7)
+
+for(i in seq_along(csvFiles[[1]])){
+    t <- readData(i)
+    # RF_res <- t[[1]]
+    # combine_res <- t[[2]]
+    combine <- t[[1]]
     plotTitle <- t[[4]]
     plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
-    combine_res_real <- t[[3]]
+    # combine_res_real <- t[[3]]
     
     ts_res <- combine %>% gather(., key='prediction',value='value',
                                           c('pcr','RFds','RFd')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
         mutate(prediction=factor(prediction, levels = c('pcr','RFd','RFds')))
+
+    r <- c(c(range(ts_res$value)[1], range(ts_res$obs)[1]) %>% min,
+           c(range(ts_res$value)[2], range(ts_res$obs)[2]) %>% max)
     
     p1 <- ggplot(ts_res,
                  aes(x=obs, y=value))+
         geom_point(alpha=0.3, color='black')+
         facet_grid(prediction~datatype)+
-        geom_smooth(method = "lm", se=FALSE, formula = y~x) +
+        # geom_smooth(method = "lm", se=FALSE, formula = y~x) +
         # stat_poly_eq(formula = y~x,
         #              aes(label = paste(..eq.label..)),
         #              parse = TRUE, size=4, hjust = 0, vjust = .5) +
@@ -422,15 +496,20 @@ for(i in seq_along(csvFiles[[1]])){
         # xlim(c(0,0.0045))+ylim(c(-0.0025,0.004))+
         geom_abline(intercept=0, slope=1, lty=2, lwd=0.8,
                     color='dark grey')+
-        theme_light()+
+        lims(x=r, y=r)+
+        # theme_light()+
+        theme_linedraw()+
         theme(
-            axis.text.y = element_text(size = 12),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.y = element_text(size = 13),
             # axis.text.y = element_blank(),
-            axis.title = element_text(size = 12),
-            axis.text.x = element_text(size = 12),
-            strip.text.x = element_text(size = 12, color = 'black'),
-            strip.background = element_rect(colour = "grey", fill = "transparent"),
-            strip.text.y = element_text(size = 12, color = 'black'),
+            axis.title = element_text(size = 13),
+            axis.text.x = element_text(size = 13),
+            strip.text.x = element_text(size = 13, color = 'black'),
+            strip.background = element_rect(colour = "black", fill = "transparent"),
+            strip.text.y = element_text(size = 13, color = 'black'),
+            panel.spacing=unit(1, "lines"),
             # strip.background = element_blank(),
             # strip.text = element_blank(),
             title = element_text(size = 15),
@@ -439,7 +518,7 @@ for(i in seq_along(csvFiles[[1]])){
             # legend.title = element_text(size = 12)
             )+
         labs(title = plotTitle,
-             subtitle = calibrMod, x='observations (m/d)', y='residuals (m/d)')
+             subtitle = calibrMod, x='observed streamflow (m/d)', y='simulated streamflow (m/d)')
     print(paste0('../graph/RFresult_all/', calibrMod,
                  'scatterplot_predVSobs_', plotTitle, '.tiff'))
     p1 %>% print()
