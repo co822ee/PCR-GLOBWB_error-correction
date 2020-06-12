@@ -1,13 +1,9 @@
 # input:
 calibrMod <- 'uncalibrated'      # calibrated    uncalibrated
-# station_i <- 1                         # station id
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
-# plotTitle <- stationInfo$plotName[station_i]
 repeatedCV <- F # whether repeated two-fold cv
 benchmark <- F  # benchmark model or not
-# trainStation <- 'Basel'
-# testStation <- 'Cochem'     #Basel, Lobith, Cochem
 
 trainStationV <- c(rep('Basel',2), rep('Lobith',2), rep('Cochem',2))
 testStationV <- c(station[which(station!='Basel')] %>% as.character(),

@@ -1,12 +1,12 @@
 # input:
-calibrMod <- 'calibrated'      # calibrated    uncalibrated
-# station_i <- 1                         # station id
+calibrMod <- 'calibrated'      # calibrated / uncalibrated    
+                               # whether to implement for the calibrated/uncalibrated PCR-GLOBWB model 
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
-# plotTitle <- stationInfo$plotName[station_i]
-repeatCV <- 3
-repeatedCV <- F # whether repeated two-fold cv
-benchmark <- F  # benchmark model or not
+benchmark <- F    # whether to include state variables as predictors in the random forests 
+repeatedCV <- F   # whether to repeat two-fold cross-validation in parameter tuning
+repeatCV <- 3     # how many repeat in two-fold cross-validation
+
 
 
 source('function_0_loadLibrary.R')
