@@ -1,4 +1,5 @@
-The discharge is predicted for 1901-2010, with the parameters that are best for 1981-1990 (so calibration is done for the 1981-1990 period). 
+The discharge was predicted for 1901-2010, with the parameters that were best for 1981-1990 (which means calibration was done for the 1981-1990 period). 
+The observed discharge in the Obs-discharge folder was obtained from GRDC. 
 
 ### Metadata for stationLatLon.csv:
 The information in stationLatLon.csv was acquired from GRDC [station catalogues](https://www.bafg.de/SharedDocs/ExterneLinks/GRDC/grdc_stations_ftp.html;jsessionid=6443BB229927568346A2D6C4DCEB0D3C.live11293?nn=201352).
