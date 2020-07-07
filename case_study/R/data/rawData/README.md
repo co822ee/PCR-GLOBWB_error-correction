@@ -1,5 +1,10 @@
-The discharge was predicted for 1901-2010, with the parameters that were best for 1981-1990 (which means calibration was done for the 1981-1990 period). 
-The observed discharge in the Obs-discharge folder was obtained from GRDC. 
+This directory contains files of raw data: 
+
+* **observed discharge (m^3/s)** obtained from the Global Runoff Data Center ([GRDC](http://www.bafg.de/GRDC)) in csv format
+* **simulated discharge (m^3/s)** from the PCR-GLOBWB (calibrated & uncalibrated) in netCDF format
+* **meteorological driving variables** averaged over the upstream grids of the gauging station in netCDF format
+* **key hydrological state variables** from the PCR-GLOBWB (calibrated & uncalibrated) averaged over the upstream grids of the gauging station in netCDF format 
+
 
 ### Metadata for stationLatLon.csv:
 The information in stationLatLon.csv was acquired from GRDC [station catalogues](https://www.bafg.de/SharedDocs/ExterneLinks/GRDC/grdc_stations_ftp.html;jsessionid=6443BB229927568346A2D6C4DCEB0D3C.live11293?nn=201352).
