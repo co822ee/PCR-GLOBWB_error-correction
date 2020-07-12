@@ -1,10 +1,12 @@
 # input:
-calibrMod <- 'uncalibrated'      # calibrated    uncalibrated
+calibrMod <- 'calibrated'      # calibrated    uncalibrated
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
 repeatedCV <- F # whether repeated two-fold cv
 benchmark <- F  # benchmark model or not
 
+source('function_0_loadLibrary.R')
+station <- c('Basel','Lobith','Cochem')
 trainStationV <- c(rep('Basel',2), rep('Lobith',2), rep('Cochem',2))
 testStationV <- c(station[which(station!='Basel')] %>% as.character(),
                   station[which(station!='Lobith')] %>% as.character(),
@@ -13,7 +15,7 @@ testStationV <- c(station[which(station!='Basel')] %>% as.character(),
 for(i in seq_along(trainStationV)){
     trainStation <- trainStationV[i]
     testStation <- testStationV[i]
-    source('function_0_loadLibrary.R')
+    
     source('function_2_RF_0_setUpDirectory.R')
     
     #---------- can be later put in function_2_RF_0_setUpDirectory.R
@@ -46,7 +48,7 @@ for(i in seq_along(trainStationV)){
     testStation_i <- which(station==testStation)
     print(paste0('Train station: ', station[station_i]))
     print(paste0('Test station: ', station[testStation_i]))
-    source(paste0('function_1_readData_excludeChannelStorage', R_B_end))
+    
     
     #------------2. Determine optimal parameter----------
     # call function determineParam(): 
@@ -65,6 +67,8 @@ for(i in seq_along(trainStationV)){
     
     #---test the RF--------
     # train the RF using the trainStation (station_i)
+    source('function_1_readData_excludeChannelStorage_forTrans.R')
+    print(paste0('Build the RF model for ', station[station_i], ' (cms)'))
     optimal_ranger <- ranger(
         formula         = res ~ ., 
         data            = df_train, 
@@ -75,8 +79,8 @@ for(i in seq_along(trainStationV)){
         importance = 'impurity'          # 'permutation'
     )
     station_i <- testStation_i
-    print(paste0('Test station: ', station[station_i]))
-    source(paste0('function_1_readData_excludeChannelStorage', R_B_end))
+    print(paste0('Test station: ', station[station_i], ' (cms)'))
+    source('function_1_readData_excludeChannelStorage_forTrans.R')
     station_i <- which(station==trainStation)
     rf.result <- all %>% 
         mutate(mod_res=predict(optimal_ranger, all) %>% predictions()) %>% 
@@ -98,12 +102,16 @@ for(i in seq_along(trainStationV)){
                           s = c(1,1,1), na.rm = TRUE, method = "2009"),
                   KGE_corrected=KGE(sim = pcr_corrected, obs = obs,
                                     s = c(1,1,1), na.rm = TRUE, method = "2009"),
+                  NSE = NSE(sim = pcr, obs = obs, 
+                            na.rm = T),
+                  NSE_corrected = NSE(sim = pcr_corrected, obs = obs, 
+                                      na.rm = T),
                   nRMSE=(((res)^2) %>% mean(na.rm=T) %>% sqrt)/mean(obs),
-                  nRMSE_corrected=(((mod_res)^2) %>% mean(na.rm=T) %>% sqrt)/mean(obs),
-                  nMAE=(res %>% abs %>% mean(na.rm=T))/mean(obs),
-                  nMAE_corrected=(mod_res %>% abs %>% mean(na.rm=T))/mean(obs),
-                  Rsquared=(lm(pcr~obs) %>% summary)$adj.r.squared,
-                  Rsquared_corrected=(lm(pcr_corrected~obs) %>% summary)$adj.r.squared) %>% 
+                  nRMSE_corrected=(((mod_res)^2) %>% mean(na.rm=T) %>% sqrt)/mean(obs)) %>% 
+                  # nMAE=(res %>% abs %>% mean(na.rm=T))/mean(obs),
+                  # nMAE_corrected=(mod_res %>% abs %>% mean(na.rm=T))/mean(obs),
+                  # Rsquared=(lm(pcr~obs) %>% summary)$adj.r.squared,
+                  # Rsquared_corrected=(lm(pcr_corrected~obs) %>% summary)$adj.r.squared) 
         mutate(station=stationInfo$station[station_i]) %>% 
         mutate(plotTitle=plotTitle)
     # 20200512 Log:
@@ -119,7 +127,7 @@ for(i in seq_along(trainStationV)){
         rename('gof'='_')
     
     rf.eval_gather_r$gof_f <- factor(rf.eval_gather_r$gof, 
-                                     levels=c('KGE','Rsquared','nRMSE','nMAE'))
+                                     levels=c('KGE','NSE','Rsquared','nRMSE','nMAE'))
     ggplot(data = rf.eval_gather_r, aes(x=gof_f, y=value, fill=model))+
         geom_col(position = 'dodge')+
         facet_grid(.~datatype, scale='free')+
@@ -170,7 +178,7 @@ for(i in seq_along(trainStationV)){
         facet_grid(.~datatype, scale='free')+
         theme_gray(base_size = 15)+
         labs(title = paste0('Model performance at ', station[testStation_i], 
-                            '\n(trained at ', station[station_i], ')'), y='GOF value (m/day)')+
+                            '\n(trained at ', station[station_i], ')'), y='GOF value (cms)')+
         scale_fill_manual(values=c("#00BFC4", "#F8766D"))+
         geom_text(aes(x=gof, y=value,
                       label=round(value, digits=4)),
