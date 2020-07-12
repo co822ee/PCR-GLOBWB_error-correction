@@ -67,7 +67,8 @@ for(i in seq_along(trainStationV)){
     
     #---test the RF--------
     # train the RF using the trainStation (station_i)
-    source('function_1_readData_excludeChannelStorage_forTrans.R')
+    # source('function_1_readData_excludeChannelStorage_forTrans.R')   # streamflow (m/day)
+    source('function_1_readData_excludeChannelStorage.R')     # streamflow depth (cms)
     print(paste0('Build the RF model for ', station[station_i], ' (cms)'))
     optimal_ranger <- ranger(
         formula         = res ~ ., 
@@ -80,7 +81,8 @@ for(i in seq_along(trainStationV)){
     )
     station_i <- testStation_i
     print(paste0('Test station: ', station[station_i], ' (cms)'))
-    source('function_1_readData_excludeChannelStorage_forTrans.R')
+    # source('function_1_readData_excludeChannelStorage_forTrans.R')   # streamflow (m/day)
+    source('function_1_readData_excludeChannelStorage.R')     # streamflow depth (cms)
     station_i <- which(station==trainStation)
     rf.result <- all %>% 
         mutate(mod_res=predict(optimal_ranger, all) %>% predictions()) %>% 
