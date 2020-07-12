@@ -92,13 +92,14 @@ ggplot(data = eval_allG %>%
     #            'PCRcalibr', 'PCRcalibr-RFd','PCRcalibr-RFds'), 
     # name = 'models',
     values=c('olivedrab1', 'cadetblue1'))+
-  labs(title = 'Model performance at different stations', 
-       subtitle = '1991-2000 (test period)', 
+  labs(
+    # title = 'Model performance at different stations', 
+    #    subtitle = '1991-2000 (test period)', 
        y='',
        color=paste0('PCR without RF-correction'), 
-       fill=paste0('Models'))
-ggsave('../graph/RFresult_all/gof_abs_new_test.tiff', dpi = 300,
-       width = 6.5, height = 8)
+       fill=paste0('Model configurations'))
+ggsave('../graph/RFresult_all/gof_abs_new_test_noTitles.tiff', dpi = 300,
+       width = 6.5, height = 7.2)
 
 #------train----------
 ggplot(data = eval_allG %>% 
