@@ -1,4 +1,4 @@
-calibrMod <- 'calibrated'      # calibrated    uncalibrated
+calibrMod <- 'uncalibrated'      # calibrated    uncalibrated
 # station_i <- 2                         # station id
 
 source('function_0_loadLibrary.R')
@@ -26,7 +26,7 @@ readData <- function(i){
     RFds_corct <- RFds %>% select('pcr_corrected','datetime') %>% #mod_res
         rename(RFds=pcr_corrected)
     
-    combine <- inner_join(RFd %>% select(-c('mod_res','pcr_corrected')), 
+    combine_values <- inner_join(RFd %>% select(-c('mod_res','pcr_corrected')), 
                           RFd_corct, by='datetime') %>% inner_join(., RFds_corct, by='datetime') %>% 
         mutate(datetime=as.Date(datetime))
     
@@ -35,39 +35,48 @@ readData <- function(i){
     RFds_res <- RFds %>% select('mod_res','datetime') %>% #mod_res
         rename(RFds=mod_res)
     
-    combine_res <- inner_join(RFd %>% select(-c('mod_res','pcr_corrected')), 
+    combine_values_res <- inner_join(RFd %>% select(-c('mod_res','pcr_corrected')), 
                               RFd_res, by='datetime') %>% inner_join(., RFds_res, by='datetime') %>% 
         mutate(datetime=as.Date(datetime))
     
-    combine_res_real <- combine %>% mutate(RFd=obs-RFd, RFds=obs-RFds)
-    list(combine, combine_res, combine_res_real, plotTitle)
+    combine_values_res_real <- combine_values %>% mutate(RFd=obs-RFd, RFds=obs-RFds)
+    list(combine_values, combine_values_res, combine_values_res_real, plotTitle)
 }
 #-------------hydrograph (RF only)---------------
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
-    combine <- t[[1]]
-    # combine_res <- t[[2]]
-    combine_res_real <- t[[3]]
+    combine_values <- t[[1]]
+    # combine_values_res <- t[[2]]
+    combine_values_res_real <- t[[3]]
     plotTitle <- t[[4]]
-    plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
+    # plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
     
     
     #--------time series of streamflow (hydrograph)------------
-    ts_q <- combine %>% gather(., key='Q',value='discharge',
+    ts_q <- combine_values %>% gather(., key='Q',value='discharge',
                                  c('obs','RFds','RFd')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
         mutate(Q=factor(Q, levels = c('obs','RFd','RFds')))
+    if(calibrMod=='calibrated'){
+        ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFd' ~ 'PCRcalibr-RFd',
+                                            Q=='RFds' ~ 'PCRcalibr-RFds',
+                                            Q=='obs'~'obs'))
+    }else{
+        ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFd' ~ 'PCRun-RFd',
+                                            Q=='RFds' ~ 'PCRun-RFds',
+                                            Q=='obs'~'obs'))
+    }
     p1 <- ggplot(data=ts_q %>% filter(datatype=='train'),
                  aes(x=datetime, y=discharge, col=Q))+
         geom_line(lwd=0.65)+
         facet_wrap(yr~., scale='free_x')+
         scale_x_date(date_labels = '%m', date_breaks = '1 month')+
         # geom_vline(
-        #     xintercept=as.numeric((combine %>%
+        #     xintercept=as.numeric((combine_values %>%
         #                                filter(grepl('-05-01', datetime)))$datetime), 
         #     lty=2, color='grey')+
         # geom_vline(
-        #     xintercept=as.numeric((combine %>%
+        #     xintercept=as.numeric((combine_values %>%
         #                                filter(grepl('-10-01', datetime)))$datetime), 
         #     lty=2, color='grey')+
         labs(title=paste0(plotTitle, ': train period (1981-1990)'),
@@ -115,7 +124,7 @@ for(i in seq_along(csvFiles[[1]])){
            width=12, height=6)
     
     #-----------time series of residuals----------
-    ts_res <- combine_res_real %>% gather(., key='Q',value='discharge',
+    ts_res <- combine_values_res_real %>% gather(., key='Q',value='discharge',
                                           c('res','RFds','RFd')) %>%
         mutate(datetime=as.Date(datetime)) %>%
         mutate(Q=factor(Q, levels = c('res','RFd','RFds')))
@@ -140,16 +149,25 @@ for(i in seq_along(csvFiles[[1]])){
 #------ partial time series--------
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
-    combine <- t[[1]]
-    # combine_res <- t[[2]]
-    combine_res_real <- t[[3]]
+    combine_values <- t[[1]]
+    # combine_values_res <- t[[2]]
+    combine_values_res_real <- t[[3]]
     plotTitle <- t[[4]]
-    plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
+    # plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
     
-    ts_q <- combine %>% gather(., key='Q',value='discharge',
+    ts_q <- combine_values %>% gather(., key='Q',value='discharge',
                                c('obs','RFds','RFd')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
         mutate(Q=factor(Q, levels = c('obs','RFd','RFds')))
+    if(calibrMod=='calibrated'){
+        ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFd' ~ 'PCRcalibr-RFd',
+                                            Q=='RFds' ~ 'PCRcalibr-RFds',
+                                            Q=='obs'~'obs'))
+    }else{
+        ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFd' ~ 'PCRun-RFd',
+                                            Q=='RFds' ~ 'PCRun-RFds',
+                                            Q=='obs'~'obs'))
+    }
     #------partial time series of discharge------
     test_p1 <- ggplot(data=ts_q %>% filter(datatype=='test', yr%in%(1991:1992)),
                       aes(x=datetime, y=discharge, col=Q))+
@@ -162,11 +180,11 @@ for(i in seq_along(csvFiles[[1]])){
                      expand = c(0,0))+   #, date_breaks = '3 month'
         
         geom_vline(
-            xintercept=as.numeric((combine %>%
+            xintercept=as.numeric((combine_values %>%
                                        filter(grepl('-05-01', datetime)))$datetime), 
             lty=2, color='grey')+
         geom_vline(
-            xintercept=as.numeric((combine %>%
+            xintercept=as.numeric((combine_values %>%
                                        filter(grepl('-10-01', datetime)))$datetime), 
             lty=2, color='grey')+
         labs(title=paste0(plotTitle), 
@@ -175,11 +193,11 @@ for(i in seq_along(csvFiles[[1]])){
              x='month')+
         theme_linedraw()+
         theme(
-            axis.text.y = element_text(size = 12),
+            axis.text.y = element_text(size = 14),
             # axis.text.y = element_blank(),
             axis.title.x = element_blank(),
-            axis.title.y = element_text(size = 12),
-            axis.text.x = element_text(size = 12),
+            axis.title.y = element_text(size = 14),
+            axis.text.x = element_text(size = 14),
             strip.text.x = element_text(size = 10, color = 'black'),
             strip.background = element_rect(colour = "transparent", fill = "white"),
             strip.text.y = element_text(size = 10, color = 'black'),
@@ -189,14 +207,14 @@ for(i in seq_along(csvFiles[[1]])){
             # strip.background = element_blank(),
             # strip.text = element_blank(),
             title = element_text(size = 15),
-            plot.subtitle = element_text(size = 12),
+            plot.subtitle = element_text(size = 14),
             plot.margin = margin(0.5,1.2,0.1,0.1,"cm"),
             legend.background = element_rect(fill='transparent',color='transparent'),
             legend.justification=c(1,0), legend.position=c(1,0.99),
             legend.margin = margin(r=0.2, unit="cm"),
             legend.key = element_rect(colour = 'transparent', fill = 'transparent'),
             legend.title=element_blank(),
-            legend.text = element_text(size = 12))+
+            legend.text = element_text(size = 14))+
         scale_colour_manual(values=c('black','#F0E442','#D55E00'))+
         lims(y=range(ts_q %>% filter(yr%in%(1991:1994)) %>% select(discharge)))
         # lims(y=c(0,0.009))
@@ -207,17 +225,17 @@ for(i in seq_along(csvFiles[[1]])){
         #                         '1994-05-01','1994-10-01','1994-12-31') %>% as.Date(),
         #              expand = c(0,0))+
         theme(title = element_blank(),
-              plot.subtitle = element_blank(),
+              # plot.subtitle = element_blank(),
               legend.position = 'none',
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
         lims(y=range(ts_q %>% filter(yr%in%(1991:1994)) %>% select(discharge)))
         # lims(y=c(0,0.009))
     
-    tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-                '/F_discharge_', plotTitle, '_test.tiff'), res = 300, units = 'in',
-         width=12, height=6)
-    grid.arrange(test_p1, testp2)
-    dev.off()
+    # tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+    #             '/F_discharge_', plotTitle, '_test.tiff'), res = 300, units = 'in',
+    #      width=12, height=6)
+    # grid.arrange(test_p1, testp2)
+    # dev.off()
     
     trainp1 <- test_p1%+%(ts_q %>% filter(datatype=='train', yr%in%(1987:1988)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
@@ -235,26 +253,26 @@ for(i in seq_along(csvFiles[[1]])){
         #                         '1990-05-01','1990-10-01','1990-12-31') %>% as.Date(),
         #              expand = c(0,0))+
         theme(title = element_blank(),
-              plot.subtitle = element_blank(),
+              # plot.subtitle = element_blank(),
               legend.position = 'none',
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
         lims(y=range(ts_q %>% filter(yr%in%(1987:1990)) %>% select(discharge)))
         # lims(y=c(0,0.009))
     
-    tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-                '/F_discharge_', plotTitle, '_train.tiff'), res = 300, units = 'in',
-         width=12, height=6)
-    grid.arrange(trainp1, trainp2)
-    dev.off()
+    # tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+    #             '/F_discharge_', plotTitle, '_train.tiff'), res = 300, units = 'in',
+    #      width=12, height=6)
+    # grid.arrange(trainp1, trainp2)
+    # dev.off()
     
     
     #--------partial time series of residuals------------
-    ts_res <- combine_res_real %>% gather(., key='Q',value='discharge',
+    ts_res <- combine_values_res_real %>% gather(., key='Q',value='discharge',
                                           c('res','RFds','RFd')) %>%
         mutate(datetime=as.Date(datetime)) %>%
         mutate(Q=factor(Q, levels = c('res','RFd','RFds')))
     
-    testp1 <- test_p1%+%(ts_res %>% filter(datatype=='test', yr%in%(1991:1992)))+
+    testres_p1 <- test_p1%+%(ts_res %>% filter(datatype=='test', yr%in%(1991:1992)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
         #              breaks = c('1991-01-01','1991-05-01','1991-10-01',
         #                         '1992-05-01','1992-10-01','1992-12-31') %>% as.Date(),
@@ -265,27 +283,27 @@ for(i in seq_along(csvFiles[[1]])){
         # lims(y=c(-0.006,0.01))+
         labs(y='residual (m/d)')
     
-    testp2 <- testp1%+%(ts_res %>% filter(datatype=='test', yr%in%(1993:1994)))+
+    testres_p2 <- testres_p1%+%(ts_res %>% filter(datatype=='test', yr%in%(1993:1994)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
         #              breaks = c('1993-01-01','1993-05-01','1993-10-01',
         #                         '1994-05-01','1994-10-01','1994-12-31') %>% as.Date(),
         #              expand = c(0,0))+
         theme(title = element_blank(),
-              plot.subtitle = element_blank(),
+              # plot.subtitle = element_blank(),
               legend.position = 'none',
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
         geom_abline(intercept = 0, slope = 0, color='grey',lty=2)+
         lims(y=range(ts_res %>% filter(yr%in%(1991:1994)) %>% select(discharge)))
         # lims(y=c(-0.006,0.01))
     
-    tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-                '/F_res_', plotTitle, '_test.tiff'), res = 300, units = 'in',
-         width=12, height=6)
-    grid.arrange(testp1, testp2)
-    dev.off()
+    # tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+    #             '/F_res_', plotTitle, '_test.tiff'), res = 300, units = 'in',
+    #      width=12, height=6)
+    # grid.arrange(testres_p1, testres_p2)
+    # dev.off()
     
     
-    trainp1 <- test_p1%+%(ts_res %>% filter(datatype=='train', yr%in%(1987:1988)))+
+    trainres_p1 <- test_p1%+%(ts_res %>% filter(datatype=='train', yr%in%(1987:1988)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
         #              breaks = c('1987-01-01','1987-05-01','1987-10-01',
         #                         '1988-05-01','1988-10-01','1988-12-31') %>% as.Date(),
@@ -296,7 +314,7 @@ for(i in seq_along(csvFiles[[1]])){
         lims(y=range(ts_res %>% filter(yr%in%(1987:1990)) %>% select(discharge)))
         # lims(y=c(-0.006,0.01))
     
-    trainp2 <- trainp1%+%(ts_res %>% filter(datatype=='train', yr%in%(1989:1990)))+
+    trainres_p2 <- trainres_p1%+%(ts_res %>% filter(datatype=='train', yr%in%(1989:1990)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
         #              breaks = c('1989-01-01','1989-05-01','1989-10-01',
         #                         '1990-05-01','1990-10-01','1990-12-31') %>% as.Date(),
@@ -308,11 +326,29 @@ for(i in seq_along(csvFiles[[1]])){
               plot.margin = margin(0.1,1.2,0.1,0.1,"cm"))+
         lims(y=range(ts_res %>% filter(yr%in%(1987:1990)) %>% select(discharge)))
         # lims(y=c(-0.006,0.01))
+    # tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
+    #             '/F_res_', plotTitle, '_train.tiff'), res = 300, units = 'in',
+    #      width=12, height=6)
+    # grid.arrange(trainres_p1, trainres_p2)
+    # dev.off()
+    
+    
+    #-----putting discharge and res together--------
     tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
-                '/F_res_', plotTitle, '_train.tiff'), res = 300, units = 'in',
-         width=12, height=6)
-    grid.arrange(trainp1, trainp2)
+                '/F_QandRes_', plotTitle, '_test.tiff'), res = 300, units = 'in',
+         width=12, height=10)
+    grid.arrange(test_p1+labs(
+                              subtitle = '(a) flow depth (1991-1992)'), 
+                 testres_p1+labs(subtitle = '(b) residuals (1991-1992)')+
+                     theme(title=element_blank(), 
+                                  legend.position = 'none'),
+                 testp2+labs(title = '',
+                             subtitle = '(c) flow depth (1993-1994)'), 
+                 testres_p2+labs(title = '',
+                                 subtitle = '(d) residuals (1993-1994)'), ncol=1)     #1991-1992
     dev.off()
+    
+    
 }
 
 
@@ -321,12 +357,12 @@ for(i in seq_along(csvFiles[[1]])){
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     # RF_res <- t[[1]]
-    # combine_res <- t[[2]]
+    # combine_values_res <- t[[2]]
     plotTitle <- t[[3]]
-    # combine <- t[[4]]
-    combine_res_real <- t[[5]]
+    # combine_values <- t[[4]]
+    combine_values_res_real <- t[[5]]
     
-    ts_res <- combine_res_real %>% gather(., key='residuals',value='value',
+    ts_res <- combine_values_res_real %>% gather(., key='residuals',value='value',
                                      c('res','RF','RFbm')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
         mutate(residuals=factor(residuals, levels = c('res','RFbm','RF')))
@@ -353,6 +389,8 @@ for(i in seq_along(csvFiles[[1]])){
     ggsave(paste0('../graph/RFresult_all/', 
                   'scatterplot_resVSpred_',calibrMod,'_', plotTitle, '.tiff'), dpi=300, 
            width=6, height=5.5)
+    
+    
 }
 
 
@@ -360,12 +398,12 @@ for(i in seq_along(csvFiles[[1]])){
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     # RF_res <- t[[1]]
-    # combine_res <- t[[2]]
+    # combine_values_res <- t[[2]]
     plotTitle <- t[[4]]
     plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
-    combine_res_real <- t[[3]]
+    combine_values_res_real <- t[[3]]
     
-    ts_res <- combine_res_real %>% gather(., key='residuals',value='value',
+    ts_res <- combine_values_res_real %>% gather(., key='residuals',value='value',
                                      c('res','RFds','RFd')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
         mutate(residuals=factor(residuals, levels = c('res','RFd','RFds')))
@@ -400,13 +438,13 @@ temp <- vector('list',length(csvFiles[[1]]))
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     # RF_res <- t[[1]]
-    # combine_res <- t[[2]]
-    combine <- t[[1]]
+    # combine_values_res <- t[[2]]
+    combine_values <- t[[1]]
     plotTitle <- t[[4]]
     # plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
-    # combine_res_real <- t[[3]]
+    # combine_values_res_real <- t[[3]]
     
-    ts_res <- combine %>% gather(., key='prediction',value='value',
+    ts_res <- combine_values %>% gather(., key='prediction',value='value',
                                  c('pcr','RFds','RFd')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
         mutate(prediction=factor(prediction, levels = c('pcr','RFd','RFds')))
@@ -456,9 +494,9 @@ ggplot(plotDF,
         # strip.background = element_blank(),
         # strip.text = element_blank(),
         title = element_text(size = 15),
-        # plot.subtitle = element_text(size = 12),
-        # legend.text = element_text(size = 12),
-        # legend.title = element_text(size = 12)
+        # plot.subtitle = element_text(size = 14),
+        # legend.text = element_text(size = 14),
+        # legend.title = element_text(size = 14)
     )+
     labs(x='observed streamflow (m/d)', y='simulated streamflow (m/d)')
 ggsave(paste0('../graph/RFresult_all/', 
@@ -468,13 +506,13 @@ ggsave(paste0('../graph/RFresult_all/',
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     # RF_res <- t[[1]]
-    # combine_res <- t[[2]]
-    combine <- t[[1]]
+    # combine_values_res <- t[[2]]
+    combine_values <- t[[1]]
     plotTitle <- t[[4]]
     plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
-    # combine_res_real <- t[[3]]
+    # combine_values_res_real <- t[[3]]
     
-    ts_res <- combine %>% gather(., key='prediction',value='value',
+    ts_res <- combine_values %>% gather(., key='prediction',value='value',
                                           c('pcr','RFds','RFd')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
         mutate(prediction=factor(prediction, levels = c('pcr','RFd','RFds')))
@@ -513,9 +551,9 @@ for(i in seq_along(csvFiles[[1]])){
             # strip.background = element_blank(),
             # strip.text = element_blank(),
             title = element_text(size = 15),
-            # plot.subtitle = element_text(size = 12),
-            # legend.text = element_text(size = 12),
-            # legend.title = element_text(size = 12)
+            # plot.subtitle = element_text(size = 14),
+            # legend.text = element_text(size = 14),
+            # legend.title = element_text(size = 14)
             )+
         labs(title = plotTitle,
              subtitle = calibrMod, x='observed streamflow (m/d)', y='simulated streamflow (m/d)')
