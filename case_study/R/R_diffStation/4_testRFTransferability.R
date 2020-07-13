@@ -1,5 +1,5 @@
 # input:
-calibrMod <- 'calibrated'      # calibrated    uncalibrated
+calibrMod <- 'uncalibrated'      # calibrated    uncalibrated
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
 repeatedCV <- F # whether repeated two-fold cv
@@ -44,9 +44,9 @@ for(i in seq_along(trainStationV)){
     }
     
     #-----------
-    station_i <- which(station==trainStation)
+    trainStation_i <- which(station==trainStation)
     testStation_i <- which(station==testStation)
-    print(paste0('Train station: ', station[station_i]))
+    print(paste0('Train station: ', station[trainStation_i]))
     print(paste0('Test station: ', station[testStation_i]))
     
     
@@ -54,6 +54,7 @@ for(i in seq_along(trainStationV)){
     # call function determineParam(): 
     # Determine the optimal parameter based on either the min OOB RMSE 
     # or the min cv errors:
+    station_i <- trainStation_i
     source(paste0('function_2_RF_2_determineParameter', R_end))
     
     outputFolder <- '../data/analysis/'
@@ -65,8 +66,8 @@ for(i in seq_along(trainStationV)){
     outputFolder <- '../data/analysis/testTransferability/'
     optParam
     
-    #---test the RF--------
-    # train the RF using the trainStation (station_i)
+    #---------- train the RF using the trainStation (station_i)------------
+    station_i <- trainStation_i
     # source('function_1_readData_excludeChannelStorage_forTrans.R')   # streamflow (m/day)
     source('function_1_readData_excludeChannelStorage.R')     # streamflow depth (cms)
     print(paste0('Build the RF model for ', station[station_i], ' (cms)'))
@@ -79,6 +80,8 @@ for(i in seq_along(trainStationV)){
         seed = 123,
         importance = 'impurity'          # 'permutation'
     )
+    
+    #-------test the RF for another location--------
     station_i <- testStation_i
     print(paste0('Test station: ', station[station_i], ' (cms)'))
     # source('function_1_readData_excludeChannelStorage_forTrans.R')   # streamflow (m/day)
@@ -95,7 +98,7 @@ for(i in seq_along(trainStationV)){
             RMSE_corrected=(((mod_res)^2) %>% mean(na.rm=T) %>% sqrt),
             MAE=res %>% abs %>% mean(na.rm=T),
             MAE_corrected=mod_res %>% abs %>% mean(na.rm=T)) %>% 
-        mutate(station=stationInfo$station[station_i]) %>% 
+        mutate(trainStation=stationInfo$station[station_i]) %>% 
         mutate(plotTitle=plotTitle)
     
     rf.eval_r <- rf.result %>% 
@@ -114,7 +117,7 @@ for(i in seq_along(trainStationV)){
                   # nMAE_corrected=(mod_res %>% abs %>% mean(na.rm=T))/mean(obs),
                   # Rsquared=(lm(pcr~obs) %>% summary)$adj.r.squared,
                   # Rsquared_corrected=(lm(pcr_corrected~obs) %>% summary)$adj.r.squared) 
-        mutate(station=stationInfo$station[station_i]) %>% 
+        mutate(trainStation=stationInfo$station[station_i]) %>% 
         mutate(plotTitle=plotTitle)
     # 20200512 Log:
     # The result does not look good because no catchment characteristic is included in the RF.
@@ -122,7 +125,7 @@ for(i in seq_along(trainStationV)){
     rf.eval_gather_r <- gather(rf.eval_r %>% mutate(datatype=ifelse(datatype=='train',
                                                                     'train period (1981-1990)', 'test period (1991-2000)')), 
                                key='key', value='value', 
-                               -c('datatype','station','plotTitle')) %>%
+                               -c('datatype','trainStation','plotTitle')) %>%
         mutate(model=ifelse(grepl('corrected', key), 'RF-corrected', 'PCR-GLOBWB')) %>% 
         mutate(gof=key) %>% 
         separate(., gof,'_') %>% 
@@ -159,7 +162,7 @@ for(i in seq_along(trainStationV)){
     #               size=4.5)
     rf.eval_gather <- gather(rf.eval%>% mutate(datatype=ifelse(datatype=='train',
                                                                'train period (1981-1990)', 'test period (1991-2000)')), key='key', value='value', 
-                             -c('datatype', 'plotTitle','station')) %>%
+                             -c('datatype', 'plotTitle','trainStation')) %>%
         mutate(gof=ifelse(grepl('RMSE', key), 'RMSE', 'MAE')) %>% 
         mutate(model=ifelse(grepl('corrected', key), 'RF-corrected', 'pcr-globwb'))
     
