@@ -13,8 +13,15 @@ for(i in 1:length(fileList)){
     pcr_new <- pcr[which(pcr$datetime==startDate):which(pcr$datetime==endDate),] %>% 
         mutate(datetime=as.Date(datetime)) %>% 
         rename('pcr'='discharge')
-    obs <- read.csv(paste0('../data/rawData/Obs-Discharge/Discharge_', 
-                           stationName, '.csv'))
+    if(stationName=='borgharen'){
+        obs <- read.csv(paste0('../data/rawData/Obs-Discharge/Discharge_', 
+                               stationName, '.csv')) %>% mutate(datetime=as.Date(datetime, '%m/%d/%Y'))
+    }else{
+        obs <- read.csv(paste0('../data/rawData/Obs-Discharge/Discharge_', 
+                               stationName, '.csv'))
+        
+    }
+    
     obs_new <- obs[which(obs$datetime==startDate):which(obs$datetime==endDate),] %>% 
         mutate(datetime=as.Date(datetime)) %>% 
         rename('obs'='discharge')
