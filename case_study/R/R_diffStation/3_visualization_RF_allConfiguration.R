@@ -31,7 +31,7 @@ eval_all <- do.call(rbind, rf.eval) %>%
 # eval_all %>% gather(., 'key','value', c('KGE','nRMSE', 'nMAE', 'Rsquared'))
 
 #----------- GOF: Only corrected--------------
-#------- Model performance --------
+#!------- Model performance --------
 eval_allG <- eval_all %>% 
     gather(., 'gof','value', -c('datatype','station', 'plotTitle', 
                                 'config')) %>% 
@@ -161,7 +161,7 @@ ggplot(data = eval_allG %>%
        fill=paste0('Models'))
 ggsave('../graph/RFresult_all/gof_abs_new_train.tiff', dpi = 300,
        width = 6.5, height = 8)
-#-------------Variable importance-------------
+#!-------------Variable importance-------------
 fileName <- lapply(dir, list.files, pattern='importance')[[1]]
 csvFiles <- lapply(dir, paste0, fileName)
 vi <- lapply(csvFiles, read.csv, header=T)
@@ -202,10 +202,13 @@ viPlot <- function(){
     inner_join(., imp_df, by='pred') %>% 
     mutate(importance=sqrt(importance))
   
-  p1 <-  ggplot(corDatac %>% gather('key','value', c('cor','importance'))
+  p1 <-  ggplot(corDatac %>% 
+                  tidyr::gather('key','value', c('cor','importance')) %>% 
+                  mutate(key=case_when(key=='cor'~'(1) cor',
+                                       key=='importance'~'(2) importance'))
   )+
-    geom_col(aes(reorder(pred, c(value[key=='cor'], 
-                                 value[key=='importance']*1000)), 
+    geom_col(aes(reorder(pred, c(value[key=='(1) cor'], 
+                                 value[key=='(2) importance']*1000)), 
                  value),
              position = 'dodge', fill='khaki') +
     # geom_col(aes(reorder(pred, importance), cor))+
@@ -230,7 +233,8 @@ viPlot <- function(){
           title = element_text(size = 16),
           plot.subtitle = element_text(size = 16))+
     labs(x=NULL, y=NULL, 
-         title=plotTitle, subtitle = configKey[[i]])     #mean decrease in node impurity (sd)
+         title=plotTitle, 
+         subtitle = paste0(list('(a) ','(b) ', '(a) ', '(b) '), configKey)[[i]])     #mean decrease in node impurity (sd)
     # ggtitle(paste0(configKey[[i]], ": \n", plotTitle))
   return(p1)
 }
@@ -250,6 +254,7 @@ for(i in seq_along(calibrL)){
       # Benchmark models
       source('function_1_readData_excludeChannelStorage_benchmarkModel.R')
       plotTitle <- stationInfo$plotName[which(stationInfo$station==station[station_i])]
+      plotTitle <- paste0(c('A. ', 'B. ', 'C. ')[station_i], plotTitle)
       print(paste0(configKey[[i]], ' (benchmarkRF): ', plotTitle))
       if(countBM<4){
         pListBM[[countBM]] <- viPlot()
@@ -264,6 +269,7 @@ for(i in seq_along(calibrL)){
       # RF models with state variables involved
       source('function_1_readData_excludeChannelStorage.R')
       plotTitle <- stationInfo$plotName[which(stationInfo$station==station[station_i])]
+      plotTitle <- paste0(c('A. ', 'B. ', 'C. ')[station_i], plotTitle)
       print(paste0(configKey[[i]], ' (RF): ', plotTitle))
       
       if(countRF<4){
