@@ -55,13 +55,9 @@ for(station_i in seq_along(station)){
     }
     if(station_i==length(station)){
         names(vi)[2:ncol(vi)] <- stationInfo$station %>% as.character()
-        if(repeatedCV){
-            write.csv(vi, paste0(outputFolder, 'result_', calibrMod,
-                                 '/repeatedcv/variable_importance.csv'), 
-                      row.names = F)
-        }else write.csv(vi, paste0(outputFolder, 'result_', calibrMod,
-                                   '/variable_importance.csv'), 
-                        row.names = F)
+        write.csv(vi, paste0(outputFolder, 'result_', calibrMod,
+                             '/variable_importance.csv'), 
+                  row.names = F)
     }
 }
 # optParam

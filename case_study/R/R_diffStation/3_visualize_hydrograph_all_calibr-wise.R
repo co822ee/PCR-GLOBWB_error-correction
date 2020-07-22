@@ -16,6 +16,8 @@ if(!dir.exists(paste0('../graph/RFresult_all/timeseries_calibr-wise'))){
 readData <- function(i){
     station <- (files[[1]][i] %>% strsplit(., '_', 3))[[1]][3] %>% sub('.csv','',.)
     plotTitle <- stationInfo$plotName[which((stationInfo$station %>% tolower())==(station %>% tolower()))]
+    upstreamArea <- stationInfo$area[which((stationInfo$station %>% tolower())==(station %>% tolower()))]
+    convRatio <- upstreamArea/0.0864
     
     PCRcalibr <- read.csv(csvFiles[[1]][i], header = T)
     PCRun <- read.csv(csvFiles[[2]][i], header = T)
@@ -39,7 +41,7 @@ readData <- function(i){
                               PCRcalibr_res, by='datetime') %>% inner_join(., PCRun_res, by='datetime') %>% 
         mutate(datetime=as.Date(datetime))
     
-    list(combine, combine_res, plotTitle)
+    list(combine, combine_res, plotTitle, convRatio)
 }
 #--------1 time series (all)------------
 for(i in seq_along(csvFiles[[1]])){
@@ -47,7 +49,7 @@ for(i in seq_along(csvFiles[[1]])){
     combine <- t[[1]]
     combine_res <- t[[2]]
     plotTitle <- t[[3]]
-    
+    convRatio <- t[[4]]
     #--------time series of streamflow (hydrograph)------------
     ts_q <- combine %>% gather(., key='Q',value='discharge',
                                c('obs','PCRcalibr','PCRun')) %>% 
@@ -69,7 +71,7 @@ for(i in seq_along(csvFiles[[1]])){
             lty=2, color='grey')+
         labs(title=paste0(plotTitle, ': train period (1981-1990)'),
              # subtitle = calibrMod,
-             y='discharge (m/d)',
+             y='flow depth (m/d)',
              x='month')+
         theme_linedraw()+
         theme(
@@ -89,8 +91,9 @@ for(i in seq_along(csvFiles[[1]])){
             title = element_text(size = 15),
             plot.subtitle = element_text(size = 12),
             legend.text = element_text(size = 12),
-            legend.title = element_text(size = 12))+
-        scale_colour_manual(values=c('black','#F0E442','#D55E00'))
+            legend.title =element_blank())+
+        scale_colour_manual(values=c('black','#F0E442','#D55E00'))+
+        scale_y_continuous(sec.axis = sec_axis(~.*convRatio, name=expression((m^{3}/s))))
 
     p2 <- p1%+%(ts_q %>% filter(datatype=='test'))+
         labs(title=paste0(plotTitle, ': test period (1991-2000)'))
@@ -126,7 +129,7 @@ for(i in seq_along(csvFiles[[1]])){
            width=12, height=6)
     
     p1%+%(ts_res %>% filter(datatype=='test'))+
-        labs(title=paste0(plotTitle, ': test period (1991-2000)'),
+        labs(title=paste0(plotTitle, ': validation period (1991-2000)'),
              y='residual (m/d)')+
         scale_colour_manual(values=c('#F0E442','#D55E00'))+
         geom_abline(intercept = 0, slope = 0, color='grey',lty=2)

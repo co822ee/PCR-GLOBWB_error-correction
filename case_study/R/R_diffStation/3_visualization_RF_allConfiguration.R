@@ -1,5 +1,5 @@
 source('function_0_loadLibrary.R')
-# source('function_2_RF_0_setUpDirectory.R')
+source('function_3_vis_0_setUpDirectory.R')
 dir <- c(paste0('../data/analysis/benchmark/', c('result_calibrated/', 'result_uncalibrated/')), 
   paste0('../data/analysis/', c('result_calibrated/', 'result_uncalibrated/'))) %>% as.list
 configKey <- list('PCRcalibr-RFd','PCRun-RFd','PCRcalibr-RFds','PCRun-RFds')
@@ -12,8 +12,7 @@ csvFiles <- lapply(dir, paste0, '/rf_eval_r.csv')
 rf.eval <- lapply(csvFiles, read.csv, header=T)
 rf.eval[[1]] %>% str
 rf.eval[[1]] %>% dim
-# pcr <- vector('list',length(rf.eval))
-# rf_biasCorrect <- vector('list',length(rf.eval))
+
 for(i in seq_along(rf.eval)){
     rf.eval[[i]] <- rf.eval[[i]] %>% 
         mutate(config=configKey[[i]])
@@ -94,7 +93,7 @@ ggplot(data = eval_allG %>%
     values=c('olivedrab1', 'cadetblue1'))+
   labs(
     # title = 'Model performance at different stations', 
-    #    subtitle = '1991-2000 (test period)', 
+       subtitle = '1991-2000 (validation period)',
        y='',
        color=paste0('PCR without RF-correction'), 
        fill=paste0('Model configurations'))
@@ -154,12 +153,12 @@ ggplot(data = eval_allG %>%
     #            'PCRcalibr', 'PCRcalibr-RFd','PCRcalibr-RFds'), 
     # name = 'models',
     values=c('olivedrab1', 'cadetblue1'))+
-  labs(title = 'Model performance at different stations', 
+  labs(     #title = 'Model performance at different stations', 
        subtitle = '1981-1990 (train period)', 
        y='GOF value',
        color=paste0('PCR without RF-correction'), 
        fill=paste0('Models'))
-ggsave('../graph/RFresult_all/gof_abs_new_train.tiff', dpi = 300,
+ggsave('../graph/RFresult_all/gof_abs_new_train_noTitles.tiff', dpi = 300,
        width = 6.5, height = 8)
 #!-------------Variable importance-------------
 fileName <- lapply(dir, list.files, pattern='importance')[[1]]

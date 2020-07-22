@@ -57,16 +57,14 @@ for(i in seq_along(csvFiles[[1]])){
     
     #--------time series of streamflow (hydrograph)------------
     ts_q <- combine_values %>% gather(., key='Q',value='discharge',
-                                      c('obs','RFds','RFd','pcr')) %>% 
+                                      c('obs','RFds','pcr')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
-        mutate(Q=factor(Q, levels = c('obs','pcr','RFd','RFds')))
-    ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFd' ~ ifelse(calibrMod=='calibrated',
-                                                          'PCRcalibr-RFd','PCRun-RFd'),
-                                        Q=='RFds' ~ ifelse(calibrMod=='calibrated',
+        mutate(Q=factor(Q, levels = c('obs','pcr','RFds')))
+    ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFds' ~ ifelse(calibrMod=='calibrated',
                                                            'PCRcalibr-RFds','PCRun-RFds'),
                                         Q=='obs'~'obs',
                                         Q=='pcr'~ifelse(calibrMod=='calibrated',
-                                                        'PCRcalibr','PCRun')))
+                                                        'PCRcalibr','PCRun')))    #Q=='RFd' ~ ifelse(calibrMod=='calibrated', 'PCRcalibr-RFd','PCRun-RFd')
     p1 <- ggplot(data=ts_q %>% filter(datatype=='train'),
                  aes(x=datetime, y=discharge, col=Q))+
         geom_line(lwd=0.65, alpha=0.8)+
@@ -102,8 +100,8 @@ for(i in seq_along(csvFiles[[1]])){
             title = element_text(size = 15),
             plot.subtitle = element_text(size = 12),
             legend.text = element_text(size = 12),
-            legend.title = element_text(size = 12))+
-        scale_colour_manual(values=c('black', 'cornflowerblue','#F0E442','#D55E00'))+
+            legend.title = element_blank())+
+        scale_colour_manual(values=c('black', 'cornflowerblue','indianred1'))+      #'#F0E442'
         scale_y_continuous(sec.axis = sec_axis(~.*convRatio, name=expression((m^{3}/s))))
 
     p2 <- p1%+%(ts_q %>% filter(datatype=='test'))+
@@ -127,21 +125,19 @@ for(i in seq_along(csvFiles[[1]])){
     
     #-----------time series of residuals----------
     ts_res <- combine_values_res_real %>% gather(., key='Q',value='discharge',
-                                                 c('res','RFds','RFd')) %>%
+                                                 c('res','RFds')) %>%
         mutate(datetime=as.Date(datetime)) %>%
-        mutate(Q=factor(Q, levels = c('res','RFd','RFds')))
-    ts_res <- ts_res %>% mutate(Q=case_when(Q=='RFd' ~ ifelse(calibrMod=='calibrated',
-                                                          'PCRcalibr-RFd','PCRun-RFd'),
-                                        Q=='RFds' ~ ifelse(calibrMod=='calibrated',
-                                                           'PCRcalibr-RFds','PCRun-RFds'),
-                                        Q=='res'~ifelse(calibrMod=='calibrated',
-                                                        'PCRcalibr','PCRun')))
+        mutate(Q=factor(Q, levels = c('res','RFds')))
+    ts_res <- ts_res %>% mutate(Q=case_when(Q=='RFds' ~ ifelse(calibrMod=='calibrated',
+                                                               'PCRcalibr-RFds','PCRun-RFds'),
+                                            Q=='res'~ifelse(calibrMod=='calibrated',
+                                                            'PCRcalibr','PCRun')))       #Q=='RFd' ~ ifelse(calibrMod=='calibrated', 'PCRcalibr-RFd','PCRun-RFd')
     
     p1%+%(ts_res %>% filter(datatype=='train'))+
         labs(title=paste0(plotTitle, ': train period (1981-1990)'),
              y='residual (m/d)')+
         geom_abline(intercept = 0, slope = 0, color='grey',lty=2)+
-        scale_colour_manual(values=c('cornflowerblue','#F0E442','#D55E00'))+
+        scale_colour_manual(values=c('cornflowerblue','indianred1'))+
         scale_y_continuous(sec.axis = sec_axis(~.*convRatio, name=expression((m^{3}/s))))
     ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
                   '/res_', plotTitle, '_train.tiff'), dpi=300,
@@ -150,7 +146,7 @@ for(i in seq_along(csvFiles[[1]])){
     p1%+%(ts_res %>% filter(datatype=='test'))+
         labs(title=paste0(plotTitle, ': validation period (1991-2000)'),
              y='residual (m/d)')+
-        scale_colour_manual(values=c('cornflowerblue','#F0E442','#D55E00'))+
+        scale_colour_manual(values=c('cornflowerblue','indianred1'))+
         geom_abline(intercept = 0, slope = 0, color='grey',lty=2)+
         scale_y_continuous(sec.axis = sec_axis(~.*convRatio, name=expression((m^{3}/s))))
     ggsave(paste0('../graph/RFresult_all/timeseries_', calibrMod,
@@ -169,18 +165,14 @@ for(i in seq_along(csvFiles[[1]])){
     convRatio <- t[[5]]
     
     ts_q <- combine_values %>% gather(., key='Q',value='discharge',
-                               c('obs','RFds','RFd','pcr')) %>% 
+                               c('obs','RFds','pcr')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
-        mutate(Q=factor(Q, levels = c('obs','pcr','RFd','RFds')))
-    ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFd' ~ ifelse(calibrMod=='calibrated',
-                                                          'PCRcalibr-RFd','PCRun-RFd'),
-                                        Q=='RFds' ~ ifelse(calibrMod=='calibrated',
+        mutate(Q=factor(Q, levels = c('obs','pcr','RFds')))
+    ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFds' ~ ifelse(calibrMod=='calibrated',
                                                            'PCRcalibr-RFds','PCRun-RFds'),
                                         Q=='obs'~'obs',
                                         Q=='pcr'~ifelse(calibrMod=='calibrated',
                                                         'PCRcalibr','PCRun')))
-    
-    
     #------partial time series of discharge------
     test_p1 <- ggplot(data=ts_q %>% filter(datatype=='test', yr%in%(1991:1992)),
                       aes(x=datetime, y=discharge, col=Q))+
@@ -223,14 +215,14 @@ for(i in seq_along(csvFiles[[1]])){
             plot.subtitle = element_text(size = 14),
             plot.margin = margin(0.5,0.2,0.1,0.1,"cm"),
             legend.background = element_rect(fill='transparent',color='transparent'),
-            legend.justification=c(1,0), legend.position=c(0.88,0.85),
+            legend.justification=c(1,0), legend.position=c(1,0.99),
             legend.margin = margin(r=0.1, unit="cm"),
             legend.key = element_rect(colour = 'transparent', fill = 'transparent'),
             legend.title=element_blank(),
             legend.text = element_text(size = 14))+
         lims(y=range(ts_q %>% filter(yr%in%(1991:1994)) %>% select(discharge)))+
         scale_y_continuous(sec.axis = sec_axis(~.*convRatio, name=expression((m^{3}/s))))+
-        scale_colour_manual(values=c('black', 'cornflowerblue','#F0E442','#D55E00'))
+        scale_colour_manual(values=c('black', 'cornflowerblue','indianred1'))
         # lims(y=c(0,0.009))
     
     testp2 <- test_p1%+%(ts_q %>% filter(datatype=='test', yr%in%(1993:1994)))+
@@ -285,9 +277,9 @@ for(i in seq_along(csvFiles[[1]])){
     
     #--------partial time series of residuals------------
     ts_res <- combine_values_res_real %>% gather(., key='Q',value='discharge',
-                                          c('res','RFds','RFd')) %>%
+                                          c('res','RFds')) %>%
         mutate(datetime=as.Date(datetime)) %>%
-        mutate(Q=factor(Q, levels = c('res','RFd','RFds')))
+        mutate(Q=factor(Q, levels = c('res','RFds')))
     
     testres_p1 <- test_p1%+%(ts_res %>% filter(datatype=='test', yr%in%(1991:1992)))+
         # scale_x_date(date_labels = '%Y-%m-%d', 
@@ -299,7 +291,7 @@ for(i in seq_along(csvFiles[[1]])){
         lims(y=range(ts_res %>% filter(yr%in%(1991:1994)) %>% select(discharge)))+
         # lims(y=c(-0.006,0.01))+
         labs(y='residual (m/d)')+
-        scale_colour_manual(values=c('cornflowerblue','#F0E442','#D55E00'))+
+        scale_colour_manual(values=c('cornflowerblue','indianred1'))+
         scale_y_continuous(sec.axis = sec_axis(~.*convRatio, name=expression((m^{3}/s))))
     
     testres_p2 <- testres_p1%+%(ts_res %>% filter(datatype=='test', yr%in%(1993:1994)))+
@@ -313,7 +305,7 @@ for(i in seq_along(csvFiles[[1]])){
               plot.margin = margin(0.1,0.2,0.1,0.1,"cm"))+
         geom_abline(intercept = 0, slope = 0, color='grey',lty=2)+
         lims(y=range(ts_res %>% filter(yr%in%(1991:1994)) %>% select(discharge)))+
-        scale_colour_manual(values=c('cornflowerblue','#F0E442','#D55E00'))+
+        scale_colour_manual(values=c('cornflowerblue','indianred1'))+
         scale_y_continuous(sec.axis = sec_axis(~.*convRatio, name=expression((m^{3}/s))))
         # lims(y=c(-0.006,0.01))
     
@@ -333,7 +325,7 @@ for(i in seq_along(csvFiles[[1]])){
         labs(subtitle = paste0(calibrMod,' (train period)'),
              y='residual (m/d)')+
         lims(y=range(ts_res %>% filter(yr%in%(1987:1990)) %>% select(discharge)))+
-        scale_colour_manual(values=c('cornflowerblue','#F0E442','#D55E00'))+
+        scale_colour_manual(values=c('cornflowerblue','indianred1'))+
         scale_y_continuous(sec.axis = sec_axis(~.*convRatio, name=expression((m^{3}/s))))
         # lims(y=c(-0.006,0.01))
     
@@ -348,7 +340,7 @@ for(i in seq_along(csvFiles[[1]])){
               legend.position = 'none',
               plot.margin = margin(0.1,0.2,0.1,0.1,"cm"))+
         lims(y=range(ts_res %>% filter(yr%in%(1987:1990)) %>% select(discharge)))+
-        scale_colour_manual(values=c('cornflowerblue','#F0E442','#D55E00'))+
+        scale_colour_manual(values=c('cornflowerblue','indianred1'))+
         scale_y_continuous(sec.axis = sec_axis(~.*convRatio, name=expression((m^{3}/s))))
         # lims(y=c(-0.006,0.01))
     # tiff(paste0('../graph/RFresult_all/timeseries_', calibrMod,
@@ -529,64 +521,4 @@ ggsave(paste0('../graph/RFresult_all/',
               'scatterplot_predVSobs_',calibrMod, '_all.tiff'), dpi=300, 
        width=9, height=7)
 
-for(i in seq_along(csvFiles[[1]])){
-    t <- readData(i)
-    # RF_res <- t[[1]]
-    # combine_values_res <- t[[2]]
-    combine_values <- t[[1]]
-    plotTitle <- t[[4]]
-    plotTitle <- paste0(c('(a) ','(b) ','(c) ')[i], plotTitle)
-    # combine_values_res_real <- t[[3]]
-    
-    ts_res <- combine_values %>% gather(., key='prediction',value='value',
-                                          c('pcr','RFds','RFd')) %>% 
-        mutate(datetime=as.Date(datetime)) %>% 
-        mutate(prediction=factor(prediction, levels = c('pcr','RFd','RFds')))
 
-    r <- c(c(range(ts_res$value)[1], range(ts_res$obs)[1]) %>% min,
-           c(range(ts_res$value)[2], range(ts_res$obs)[2]) %>% max)
-    
-    p1 <- ggplot(ts_res,
-                 aes(x=obs, y=value))+
-        geom_point(alpha=0.3, color='black')+
-        facet_grid(prediction~datatype)+
-        # geom_smooth(method = "lm", se=FALSE, formula = y~x) +
-        # stat_poly_eq(formula = y~x,
-        #              aes(label = paste(..eq.label..)),
-        #              parse = TRUE, size=4, hjust = 0, vjust = .5) +
-        stat_poly_eq(formula = y~x,
-                     aes(label = paste(..rr.label..)),
-                     parse = TRUE, size=4, hjust = 0, vjust = 0.85) +
-        # xlim(c(0,0.0045))+ylim(c(-0.0025,0.004))+
-        geom_abline(intercept=0, slope=1, lty=2, lwd=0.8,
-                    color='dark grey')+
-        lims(x=r, y=r)+
-        # theme_light()+
-        theme_linedraw()+
-        theme(
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            axis.text.y = element_text(size = 13),
-            # axis.text.y = element_blank(),
-            axis.title = element_text(size = 13),
-            axis.text.x = element_text(size = 13),
-            strip.text.x = element_text(size = 13, color = 'black'),
-            strip.background = element_rect(colour = "black", fill = "transparent"),
-            strip.text.y = element_text(size = 13, color = 'black'),
-            panel.spacing=unit(1, "lines"),
-            # strip.background = element_blank(),
-            # strip.text = element_blank(),
-            title = element_text(size = 15),
-            # plot.subtitle = element_text(size = 14),
-            # legend.text = element_text(size = 14),
-            # legend.title = element_text(size = 14)
-            )+
-        labs(title = plotTitle,
-             subtitle = calibrMod, x='observed streamflow (m/d)', y='simulated streamflow (m/d)')
-    print(paste0('../graph/RFresult_all/', calibrMod,
-                 'scatterplot_predVSobs_', plotTitle, '.tiff'))
-    p1 %>% print()
-    ggsave(paste0('../graph/RFresult_all/', 
-                  'scatterplot_predVSobs_',calibrMod,'_', plotTitle, '.tiff'), dpi=300, 
-           width=6, height=7)
-}
