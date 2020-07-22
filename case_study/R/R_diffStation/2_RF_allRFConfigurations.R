@@ -1,18 +1,13 @@
 # input:
-calibrMod <- 'calibrated'      # calibrated / uncalibrated    
+calibrMod <- 'uncalibrated'      # calibrated / uncalibrated    
                                # whether to implement for the calibrated/uncalibrated PCR-GLOBWB model 
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
 benchmark <- F    # whether to include state variables as predictors in the random forests 
-repeatedCV <- F   # whether to repeat two-fold cross-validation in parameter tuning
-repeatCV <- 3     # how many repeat in two-fold cross-validation
-
-
-
 source('function_0_loadLibrary.R')
 source('function_2_RF_0_setUpDirectory.R')
 
-optParam <- matrix(NA, nrow=length(station), ncol=7)   # there are 7 columns returned by determineParam function.
+optParam <- matrix(NA, nrow=length(station), ncol=5)   # there are 5 columns returned by determineParam function.
 
 #--------------RF---------------
 # self-note: this script comes from the 2_RF_excludeChannelStorage.R (20200511).
@@ -20,16 +15,13 @@ optParam <- matrix(NA, nrow=length(station), ncol=7)   # there are 7 columns ret
 for(station_i in seq_along(station)){
     source(paste0('function_1_readData_excludeChannelStorage', R_B_end))
     print(station[station_i])
-
-    
-    source(paste0('function_2_RF_1_tuneParameter', R_end))
+    source('function_2_RF_1_tuneParameter.R')
 }
 
 #------------2. Determine optimal parameter----------
 # call function determineParam(): 
-# Determine the optimal parameter based on either the min OOB RMSE 
-# or the min cv errors:
-source(paste0('function_2_RF_2_determineParameter', R_end))      # R_end is intended to differentiate the benchmark model.
+# Determine the optimal parameter based on the min OOB RMSE 
+source('function_2_RF_2_determineParameter.R')    
 for(station_i in seq_along(station)){
     print(station[station_i])
     optParam[station_i,] <- determineParam(station_i) %>% as.numeric()
@@ -43,7 +35,7 @@ for(station_i in seq_along(station)){
 optParam
 
 #-------3. optimal_ranger----------
-source(paste0('function_2_RF_3_optimalRF', R_end))
+source('function_2_RF_3_optimalRF.R')
 for(station_i in seq_along(station)){
     source(paste0('function_1_readData_excludeChannelStorage', R_B_end))
     
@@ -73,19 +65,10 @@ for(station_i in seq_along(station)){
     }
 }
 # optParam
-if(repeatedCV){
-    write.csv(rf.eval, 
-              paste0(outputFolder, 'result_', calibrMod,
-                     '/repeatedcv/rf_eval.csv'), row.names = F)
-    write.csv(rf.eval_r, 
-              paste0(outputFolder, 'result_', calibrMod,
-                     '/repeatedcv/rf_eval_r.csv'), row.names = F)
-}else{
-    write.csv(rf.eval, 
-              paste0(outputFolder, 'result_', calibrMod,
-                     '/rf_eval.csv'), row.names = F)
-    write.csv(rf.eval_r, 
-              paste0(outputFolder, 'result_', calibrMod,
-                     '/rf_eval_r.csv'), row.names = F)
-}
+write.csv(rf.eval, 
+          paste0(outputFolder, 'result_', calibrMod,
+                 '/rf_eval.csv'), row.names = F)
+write.csv(rf.eval_r, 
+          paste0(outputFolder, 'result_', calibrMod,
+                 '/rf_eval_r.csv'), row.names = F)
 

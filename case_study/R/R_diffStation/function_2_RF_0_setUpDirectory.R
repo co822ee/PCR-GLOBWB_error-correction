@@ -48,11 +48,4 @@ if(!dir.exists(paste0(outputFolder, 'result_', calibrMod, '/'))){
 if(!dir.exists(paste0(outputGraphFolder, calibrMod))){
     paste0(outputGraphFolder, calibrMod) %>% dir.create()
 }
-if(repeatedCV){
-    R_end <- '_repeatedcv.R'
-    if(!file.exists(paste0(outputFolder, '/result_', calibrMod, '/repeatedcv'))){
-        paste0(outputFolder, 'result_', calibrMod, '/repeatedcv') %>% dir.create()
-    }
-}else{
-    R_end <- '.R'
-}
+
