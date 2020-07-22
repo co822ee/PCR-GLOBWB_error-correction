@@ -26,14 +26,12 @@ At the top of the script you can choose
 
 * whether to implement for the calibrated/uncalibrated PCR-GLOBWB model 
 * whether to include state variables as predictors in the random forests
-* whether to repeat two-fold cross-validation in parameter tuning
-* how many repeat in two-fold cross-validation. Note that it is recommended that there is no need to implement repeated two-fold cross-validation for the parameter tuning, since it does not greatly influence the performance of random forests.
 
 
 This script runs the random forests for all stations provided and implements the following processes:
 
 * tuning parameter and creating csv files of the tuning results (hyper_grid_[station].csv)
-* determining optimal parameters based on OOB RMSEs and cross-validation RMSEs
+* determining optimal parameters based on OOB RMSEs
 * creating csv files of goodness of fit values using both PCR-GLOBWB predictions and ones updated by the random forests (rf_eval.csv giving absolute goodness-of-fit values and rf_eval_r.csv giving relative goodness-of-fit values)
 * creating csv files of variable importance results (variable_importance.csv)
 * creating csv files of streamflow predictions updated by the random forests (rf_result_[station].csv)
