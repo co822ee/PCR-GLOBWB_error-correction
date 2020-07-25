@@ -1,7 +1,7 @@
-This repository of the research article "Error-correction of streamflow predictions from a global hydrological model using random forests" by Youchen Shen, Jessica Ruijsch, Meng Lu, Edwin Sutanudjaja, Derek Karssenberg from Utrecht University, the Netherlands.
+This is the repository of the research article "Error-correction of streamflow predictions from a global hydrological model using random forests" by Youchen Shen, Jessica Ruijsch, Meng Lu, Edwin Sutanudjaja, Derek Karssenberg from Utrecht University, the Netherlands.
 
 
-Here includes all raw observed and simulated data from PCR-GLOBWB, scripts for modelling and analysis for the research where random forests serve as an error-correction model for PCR-GLOBWB streamflow predictions. 
+Here includes all observed data and simulated PCR-GLOBWB data, scripts for modelling and analysis for the research where random forests serve as an error-correction model for PCR-GLOBWB streamflow predictions. 
 
 The folder of case_study/R/R_diffStation gives all the R and python scripts for this research project. 
 ## Raw data
@@ -13,7 +13,7 @@ Raw data is available in the directory **case_study/R/data/rawData**.
 
 ## Before starting
 **case_study/R/data/rawData/stationLatLon.csv** indicates the location and basic geographic information of each station. This data was obtained from [GRDC station catalogues](https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/211_ctlgs/catalogues_node.html) (acessed date: 28/04/2020). 
-With this station information, the following scripts are run for all stations indicated in this csv file.
+With this station information, the following scripts are run for all stations that are indicated in this csv file and that have PCR-GLOBWB calibrated predictions in the folder [case_study/R/data/raw_data/PCR-Discharge/calibrated/](https://github.com/co822ee/PCR-GLOBWB_error-correction/tree/master/case_study/R/data/rawData/PCR-Discharge/calibrated).
 
 ## Data preprocessing
 
