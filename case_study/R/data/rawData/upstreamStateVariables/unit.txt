@@ -1,0 +1,18 @@
+baseflow m/day
+directRunoff m/day
+domesticWaterWithdrawal m/day
+gwRecharge m/day
+industryWaterWithdrawal m/day
+# Here gives the units of the state variables used in this study
+interflowTotal m/day
+irrigationWaterWithdrawal m/day
+livestockWaterWithdrawal  m/day
+nonIrrWaterConsumption  m/day
+snowCoverSWE m
+snowFreeWater m
+storGroundwater m
+storLowTotal m
+storUppTotal m
+surfaceWaterStorage m
+totalEvaporation  m/day
+totLandSurfaceActuaET m/day
