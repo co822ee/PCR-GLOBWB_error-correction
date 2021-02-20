@@ -1,14 +1,11 @@
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-library(gridExtra)
-
-# Random forest
-library(ranger)
-
-#KGE
-library(hydroGOF)
-
-#visualization
-library("ggrepel")
-library(ggpmisc)
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg)
+  sapply(pkg, require, character.only = TRUE)
+}
+packages <- c("dplyr", "tidyr", "ggplot2", "gridExtra", 
+              "ranger", "hydroGOF",    #random forest and KGE
+              "ggrepel", "ggpmisc"  #visualization
+              )
+ipak(packages)
