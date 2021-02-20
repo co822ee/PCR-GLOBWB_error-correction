@@ -1,5 +1,5 @@
 hyper_grid <- expand.grid(
-    mtry = seq(3, length(feature), by=1),
+    mtry = seq(3, length(x_varname), by=2),
     ntrees = seq(100,1000, by=200),
     OOB_RMSE = 0,
     OOB_R2 = 0,
@@ -24,9 +24,15 @@ for(i in 1:nrow(hyper_grid)){
         mean() %>% sqrt()
 }
 
-print(paste0('output csv file: ', outputFolder,'result_', calibrMod, '/hyper_grid_',
-             station[station_i], '.csv'))
-
-write.csv(hyper_grid, paste0(outputFolder,'result_', calibrMod, '/hyper_grid_',
-                             station[station_i], '.csv'), row.names = F)
+if(benchmark){
+    print(paste0('output csv file: ', outputFolder,'/hyper_grid_',
+                 station[station_i], '.csv'))
+    write.csv(hyper_grid, paste0(outputFolder, '/hyper_grid_',
+                                 station[station_i], '.csv'), row.names = F)
+}else{
+    print(paste0('output csv file: ', outputFolder,'result_', calibrMod, '/hyper_grid_',
+                 station[station_i], '.csv'))
+    write.csv(hyper_grid, paste0(outputFolder,'result_', calibrMod, '/hyper_grid_',
+                                 station[station_i], '.csv'), row.names = F)
+}
 

@@ -4,6 +4,7 @@ calibrMod <- 'uncalibrated'      # calibrated / uncalibrated
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
 benchmark <- T    # whether to use only driving variables as predictors in the random forests 
+if(!benchmark) state_lagged <- F  # whether to include lagged driving variables in the random forests where driving variables and state variables are predictors
 source('function_0_loadLibrary.R')
 source('function_2_RF_0_setUpDirectory.R')
 
@@ -13,7 +14,7 @@ optParam <- matrix(NA, nrow=length(station), ncol=5)   # there are 5 columns ret
 # self-note: this script comes from the 2_RF_excludeChannelStorage.R (20200511).
 #-----------1. Tune parameter---------------
 for(station_i in seq_along(station)){
-    source(paste0('function_1_readData_excludeChannelStorage', R_B_end))
+    source('function_1_readData_new.R')
     print(station[station_i])
     source('function_2_RF_1_tuneParameter.R')
 }
