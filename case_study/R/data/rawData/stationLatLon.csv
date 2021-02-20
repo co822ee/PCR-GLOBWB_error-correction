@@ -1,7 +1,7 @@
-"station","x","y","river","area","altitude","d_start","d_end","d_yrs","d_miss","lta_discharge","r_volume_yr","r_height_yr","plotName"
-"Basel",47.5594,7.6167,"Rhine",35897,293.864,1869,2016,148,0,1043.937,1043.937,1043.937,"Basel (Rhine)"
-"Cochem",50.143351,7.168276,"Moselle",27088,77,1900,2016,117,0,313.815,313.815,313.815,"Cochem (Moselle)"
-"Lobith",51.84,6.11,"Rhine",160800,8.53,1901,2017,117,0,2214.135,2214.135,2214.135,"Lobith (Rhine)"
-"Maxau",49.038985,8.305563,"Rhine",50196,97.79,1921,2016,96,0.347935204,1252.995,1252.995,1252.995,"Maxau (Rhine)"
-"Wuerzburg",49.796,9.926,"Main",14031,164.55,1823,2016,194,0,108.868,108.868,108.868,"Wuerzburg (Main)"
-"Borgharen",50.87,5.72,"Maas",21301,40,1911,2016,106,2.830797841,NA,NA,NA,"Borgharen (Maas)"
+station,x,y,river,area,altitude,d_start,d_end,d_yrs,d_miss,lta_discharge,r_volume_yr,r_height_yr,plotName
+Basel,47.5594,7.6167,Rhine,35897,293.864,1869,2016,148,0,1043.937,1043.937,1043.937,Basel (Rhine)
+Cochem,50.143351,7.168276,Moselle,27088,77,1900,2016,117,0,313.815,313.815,313.815,Cochem (Moselle)
+Lobith,51.84,6.11,Rhine,160800,8.53,1901,2017,117,0,2214.135,2214.135,2214.135,Lobith (Rhine)
+Maxau,49.038985,8.305563,Rhine,50196,97.79,1921,2016,96,0.347935204,1252.995,1252.995,1252.995,Maxau (Rhine)
+Wuerzburg,49.796,9.926,Main,14031,164.55,1823,2016,194,0,108.868,108.868,108.868,Wuerzburg (Main)
+Borgharen,50.87,5.72,Maas,21301,40,1911,2016,106,2.830797841,NA,NA,NA,Borgharen (Maas)
