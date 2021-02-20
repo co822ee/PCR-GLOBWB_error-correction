@@ -9,8 +9,9 @@
 /case_study/R/Rlab_ISL
 /case_study/R/data/archive
 /case_study/R/data/rawData/archive
-/case_study/R/data/preprocess
+#/case_study/R/data/preprocess
 /case_study/R/data/analysis
+/case_study/R/data/backup
 /case_study/dem
 /case_study/R/data/rawData/dem_srtm
 case_study/R/R_diffStation/archive/
@@ -19,4 +20,6 @@ case_study/R/R_diffStation/self-explanatory/
 *.tiff
 *.rds
 *.hdr
+*.html
 case_study/R/randomTest.R
+.Rproj.user
