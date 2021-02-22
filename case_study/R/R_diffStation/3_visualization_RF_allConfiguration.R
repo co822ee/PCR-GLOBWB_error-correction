@@ -55,9 +55,9 @@ ggplot(data = eval_allG %>%
              filter(!grepl('corrected', gof)) %>% 
              mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
                                                'nRMSE','nMAE'))), 
-           aes(x=station, y=value, col=pcr_config), 
+           aes(x=station, y=value), col='black',   #col=pcr_config 
            position = 'dodge', fill='transparent', lwd=1.1)+
-  facet_wrap(gof~., scale='free_x',ncol=1)+
+  facet_grid(gof~pcr_config, scale='free_x')+
   theme_linedraw()+
   scale_y_continuous(breaks=c(0,0.25,0.5,0.6,0.7,0.8,0.9))+
   theme(
@@ -71,26 +71,26 @@ ggplot(data = eval_allG %>%
     strip.background = element_rect(colour = "black", fill = "white"),
     strip.text.y = element_text(size = 15, color = 'black'),
     
-    panel.spacing=unit(1.3, "lines"),
+    panel.spacing=unit(1, "lines"),
     panel.grid.major.y = element_line(color='black', linetype=2),
     panel.grid.major.x = element_blank(),
     panel.grid.minor = element_blank(),
-
+    
     title = element_text(size = 17),
     plot.subtitle = element_text(size = 15),
     legend.text = element_text(size = 13),
     legend.title = element_text(size = 14)
-    )+
-  scale_fill_manual(
-    values=c('chartreuse2','forestgreen',
-             'lightseagreen','midnightblue'))+
-  scale_color_manual(
-    values=c('olivedrab1', 'cadetblue1'))+
-  labs(
-       subtitle = '1991-2000 (validation period)',
-       y='',
-       color=paste0('PCR without RF-correction'), 
-       fill=paste0('Model configurations'))
+  )+
+  # scale_fill_manual(
+  #   values=c('chartreuse2','forestgreen',
+  #            'lightseagreen','midnightblue'))+
+  # scale_color_manual(
+  #   values=c('olivedrab1', 'cadetblue1'))+
+  labs(     #title = 'Model performance at different stations', 
+    subtitle = '1991-2000 (test period)', 
+    y='GOF value',
+    color=paste0('PCR without RF-correction'), 
+    fill=paste0('Models'))
 ggsave('../graph/RFresult_all/gof_abs_new_test_noTitles.tiff', dpi = 300,
        width = 6.5, height = 7.2)
 
@@ -109,7 +109,7 @@ ggplot(data = eval_allG %>%
              filter(!grepl('corrected', gof)) %>% 
              mutate(gof=factor(gof, levels = c('KGE','NSE','Rsquared',
                                                'nRMSE','nMAE'))), 
-           aes(x=station, y=value, col=pcr_config), 
+           aes(x=station, y=value), col='black',   #col=pcr_config 
            position = 'dodge', fill='transparent', lwd=1.1)+
   facet_grid(gof~pcr_config, scale='free_x')+
   theme_linedraw()+
