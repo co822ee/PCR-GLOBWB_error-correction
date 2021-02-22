@@ -22,7 +22,7 @@ if(benchmark){
         pred1 <- read.csv(paste0('../data/preprocess/', calibrMod, '/pred_', station[station_i], '.csv'))
         pred2 <- read.csv(paste0('../data/preprocess/inputVariables/met_lag10_', 
                                  tolower(station[station_i]), '.csv'))
-        pred_all <- inner_join(pred1, pred2, by=c('datetime','et','p','t'))
+        pred_all <- inner_join(pred1, pred2 %>% select(-et,-t,-p), by=c('datetime'))
         pred <- pred_all %>% 
             mutate(datetime=as.Date(datetime)) %>% 
             inner_join(., ymd, by='datetime') %>% 
@@ -56,12 +56,21 @@ all_df <-
     inner_join(q, pred, by="datetime") %>% 
     inner_join(., ymd %>% select(-d), by="datetime") %>% 
     mutate(datatype=ifelse(yr%in%(trainPeriod), 'train', 'test')) %>% 
-    mutate(day=ymd$yr)
+    mutate(day=ymd$d)
 
 timeVar <- c('datetime','m','yr','day')   #'d'
 qVar <- c('res','obs','pcr')
 x_varname <- setdiff(names(all_df), c(timeVar, qVar, 'datatype'))  
 #-----------training and testing data for the model-------------
 df_train <- all_df %>% filter(datatype=='train') %>% select(all_of(x_varname), 'res')
-if(benchmark|state_lagged) df_train <- df_train[-(1:10), ]  # remove the first 10 rows because of missing values
+if(benchmark){
+    all_df <- all_df[-(1:10), ]
+    df_train <- df_train[-(1:10), ]  # remove the first 10 rows because of missing values
+}else{
+    if(state_lagged){
+        all_df <- all_df[-(1:10), ]
+        df_train <- df_train[-(1:10), ]  # remove the first 10 rows because of missing values
+    }
+}
 df_test <- all_df %>% filter(datatype=='test') %>% select(all_of(x_varname), 'res')
+print(x_varname)

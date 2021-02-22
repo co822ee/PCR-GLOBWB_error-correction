@@ -13,27 +13,15 @@ if(!dir.exists('../data/analysis')){
 if(!dir.exists('../graph')){
     dir.create('../graph')
 }
-if(benchmark){
-    outputFolder <- '../data/analysis/benchmark/'   
-    outputGraphFolder <- '../graph/benchmark/'
-    # Create the outputFolder
-    if(!dir.exists(outputFolder)){
-        dir.create(outputFolder)
-    }
-    if(!dir.exists(outputGraphFolder)){
-        dir.create(outputGraphFolder)
-    }
-    
-}else{
-    outputFolder <- '../data/analysis/'
-    outputGraphFolder <- '../graph/'
-    # Create subfolders for calibrated and uncalibrated results
-    if(!dir.exists(paste0(outputFolder, 'result_', calibrMod, '/'))){
-        paste0(outputFolder, 'result_', calibrMod) %>% dir.create()
-    }
-    if(!dir.exists(paste0(outputGraphFolder, calibrMod))){
-        paste0(outputGraphFolder, calibrMod) %>% dir.create()
-    }
+outputFolder <- '../data/analysis/'
+outputGraphFolder <- '../graph/'
+# Create subfolders for calibrated and uncalibrated results
+if(!dir.exists(paste0(outputFolder, 'result_', calibrMod, '/'))){
+    paste0(outputFolder, 'result_', calibrMod) %>% dir.create()
 }
+if(!dir.exists(paste0(outputGraphFolder, calibrMod))){
+    paste0(outputGraphFolder, calibrMod) %>% dir.create()
+}
+outputDir <- paste0(outputFolder,'result_', calibrMod)
 
 

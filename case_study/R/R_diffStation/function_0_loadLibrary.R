@@ -6,6 +6,7 @@ ipak <- function(pkg){
 }
 packages <- c("dplyr", "tidyr", "ggplot2", "gridExtra", 
               "ranger", "hydroGOF",    #random forest and KGE
+              "doParallel", "foreach", #do parallel
               "ggrepel", "ggpmisc"  #visualization
               )
 ipak(packages)

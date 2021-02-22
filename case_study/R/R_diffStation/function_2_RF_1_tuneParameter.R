@@ -25,14 +25,21 @@ for(i in 1:nrow(hyper_grid)){
 }
 
 if(benchmark){
-    print(paste0('output csv file: ', outputFolder,'/hyper_grid_',
+    print(paste0('output csv file: ', outputDir, '/bm_hyper_grid_',
                  station[station_i], '.csv'))
-    write.csv(hyper_grid, paste0(outputFolder, '/hyper_grid_',
+    write.csv(hyper_grid, paste0(outputDir, '/bm_hyper_grid_',
                                  station[station_i], '.csv'), row.names = F)
 }else{
-    print(paste0('output csv file: ', outputFolder,'result_', calibrMod, '/hyper_grid_',
-                 station[station_i], '.csv'))
-    write.csv(hyper_grid, paste0(outputFolder,'result_', calibrMod, '/hyper_grid_',
-                                 station[station_i], '.csv'), row.names = F)
+    if(state_lagged){
+        print(paste0('output csv file: ', outputDir, '/hyper_grid_',
+                     station[station_i], '.csv'))
+        write.csv(hyper_grid, paste0(outputDir, '/hyper_grid_',
+                                     station[station_i], '.csv'), row.names = F)
+    }else{
+        print(paste0('output csv file: ', outputDir, '/nolag_hyper_grid_',
+                     station[station_i], '.csv'))
+        write.csv(hyper_grid, paste0(outputDir, '/nolag_hyper_grid_',
+                                     station[station_i], '.csv'), row.names = F)
+    }
 }
 

@@ -4,12 +4,26 @@
 #------------------------------------------------------------------------
 
 determineParam <- function(station_i){
-    print(paste0('Read csv file: ', outputFolder,'result_', calibrMod,
-                 '/hyper_grid_', 
-                 station[station_i], '.csv'))
-    hyper_grid <- read.csv(paste0(outputFolder,'result_', calibrMod,
-                                  '/hyper_grid_',  
-                                  station[station_i], '.csv'), header = T)
+
+    if(benchmark){
+        print(paste0('Read csv file: ', outputDir, '/bm_hyper_grid_', 
+                     station[station_i], '.csv'))
+        hyper_grid <- read.csv(paste0(outputDir, '/bm_hyper_grid_',  
+                                      station[station_i], '.csv'), header = T)
+    }else{
+        if(state_lagged){
+            print(paste0('Read csv file: ', outputDir, '/hyper_grid_', 
+                         station[station_i], '.csv'))
+            hyper_grid <- read.csv(paste0(outputDir, '/hyper_grid_',  
+                                          station[station_i], '.csv'), header = T)
+        }else{
+            print(paste0('Read csv file: ', outputDir, '/nolag_hyper_grid_', 
+                         station[station_i], '.csv'))
+            hyper_grid <- read.csv(paste0(outputDir, '/nolag_hyper_grid_',  
+                                          station[station_i], '.csv'), header = T)
+        }
+    }
+    
     a <- (hyper_grid %>%
               dplyr::arrange(OOB_RMSE))
     ar <- hyper_grid$OOB_RMSE %>% range() %>% round(digits =6)
