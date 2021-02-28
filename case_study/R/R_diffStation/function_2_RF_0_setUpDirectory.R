@@ -23,5 +23,5 @@ if(!dir.exists(paste0(outputGraphFolder, calibrMod))){
     paste0(outputGraphFolder, calibrMod) %>% dir.create()
 }
 outputDir <- paste0(outputFolder,'result_', calibrMod)
-
+outputGraphDir <- paste0(outputGraphFolder, calibrMod)
 
