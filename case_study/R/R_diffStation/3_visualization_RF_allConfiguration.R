@@ -87,12 +87,12 @@ ggplot(data = eval_allG %>%
   # scale_color_manual(
   #   values=c('olivedrab1', 'cadetblue1'))+
   labs(     #title = 'Model performance at different stations', 
-    subtitle = '1991-2000 (test period)', 
+    subtitle = '1991-2000 (validation period)', 
     y='GOF value',
     color=paste0('PCR without RF-correction'), 
     fill=paste0('Models'))
 ggsave('../graph/RFresult_all/gof_abs_new_test_noTitles.tiff', dpi = 300,
-       width = 6.5, height = 7.2)
+       width = 7.5, height = 6)
 
 #------train----------
 ggplot(data = eval_allG %>% 
