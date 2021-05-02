@@ -1,12 +1,12 @@
 source("function_0_loadLibrary.R")
 # input:
-# Only uncalibrated pcr-globwb model is used 
-calibrMod <- 'uncalibrated'      
+# Only calibrated pcr-globwb model is used 
+calibrMod <- 'calibrated'      
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
 # In the RF models, we used the state variables and lagged met variables.
 benchmark <- F    # whether to use only driving variables as predictors in the random forests 
-state_lagged <- T  # whether to include lagged driving variables in the random forests where driving variables and state variables are predictors
+state_lagged <- F  # whether to include lagged driving variables in the random forests where driving variables and state variables are predictors
 source('function_2_RF_0_setUpDirectory.R')
 outputDir
 

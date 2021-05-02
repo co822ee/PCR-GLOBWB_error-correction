@@ -61,10 +61,10 @@ optimalRF <- function(optParam, station_i){
             write.csv(rf.result, paste0(outputDir, '/rf_quantile_result_',
                                         station[station_i], '.csv'), row.names = F)
         }else{
-            # print(paste0('output csv file:', outputDir, '/nolag_rf_result_',
-            #              station[station_i], '.csv'))
-            # write.csv(rf.result, paste0(outputDir, '/nolag_rf_result_',
-            #                             station[station_i], '.csv'), row.names = F)
+            print(paste0('output csv file:', outputDir, '/nolag_rf_quantile_',
+                         station[station_i], '.csv'))
+            write.csv(rf.result, paste0(outputDir, '/nolag_rf_quantile_',
+                                        station[station_i], '.csv'), row.names = F)
         }
     }
    
