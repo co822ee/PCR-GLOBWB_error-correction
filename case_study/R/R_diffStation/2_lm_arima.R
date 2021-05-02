@@ -1,7 +1,7 @@
 source("function_0_loadLibrary.R")
 library(nlme)
 # input:
-calibrMod <- 'calibrated'      # calibrated / uncalibrated    
+calibrMod <- 'uncalibrated'      # calibrated / uncalibrated    
 # whether to implement for the calibrated/uncalibrated PCR-GLOBWB model 
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
@@ -22,7 +22,7 @@ for(station_i in seq_along(station)){
     # use the time covariate in 10-year period
     df_train$t_ar <- 1:nrow(df_train)
     df_test$t_ar <- 1:nrow(df_test)
-    df_train <- df_train[1:3600,]
+    df_train <- df_train[1:2500,]  #1500
     gls_m1 <- gls(as.formula(paste0("res~", paste(x_varname, collapse = "+"))),
                  data=df_train, correlation = corARMA(p=ar_p[station_i], q=0, form=~t_ar))  #t (time index for the data)
     # gls_m1day <- gls(as.formula(paste0("res~", paste(x_varname, collapse = "+"))),
@@ -75,4 +75,5 @@ for(station_i in seq_along(station)){
             row.names = F)
 }
 
-
+result.eva <- lapply(paste0(outputDir, "/", list.files(outputDir, "lmarima_eval_")[1:2]), read.csv)
+result.eva
