@@ -1,19 +1,23 @@
 calibrMod <- 'calibrated'      # calibrated    uncalibrated
 
 source('function_0_loadLibrary.R')
-dir <- c(paste0('../data/analysis/benchmark_ar//',  'result_', calibrMod,'/'), 
+dir <- c(
+    # paste0('../data/analysis/benchmark_ar//',  'result_', calibrMod,'/'), 
          paste0('../data/analysis/', 'result_', calibrMod,'/'))
 
-files <- lapply(dir, list.files, pattern='rf_result')
+files <- lapply(dir, list.files, pattern="bm_rf_result")
+files[2] <- lapply(dir, list.files, pattern="nolag_rf_result")
+# files[[2]] <- files[[1]][!grepl("bm_rf_result", files[[1]])]
+# files[1] <- lapply(dir, list.files, pattern='bm_rf_result')
 
 stationInfo <- read.csv('../data/rawData/stationLatLon.csv')
 
-csvFiles <- lapply(seq_along(files), function(i) paste0(dir[i], files[[i]]))
+csvFiles <- lapply(seq_along(files), function(i) paste0(dir, files[[i]]))
 if(!dir.exists(paste0('../graph/RFresult_all_ar/timeseries_', calibrMod))){
     dir.create(paste0('../graph/RFresult_all_ar/timeseries_', calibrMod))
 }
 readData <- function(i){
-    station <- (files[[1]][i] %>% strsplit(., '_', 3))[[1]][3] %>% sub('.csv','',.)
+    station <- (files[[1]][i] %>% strsplit(., '_', 3))[[1]][4] %>% sub('.csv','',.)
     plotTitle <- stationInfo$plotName[which((stationInfo$station %>% tolower())==(station %>% tolower()))]
     upstreamArea <- stationInfo$area[which((stationInfo$station %>% tolower())==(station %>% tolower()))]
     convRatio <- upstreamArea/0.0864
@@ -23,26 +27,26 @@ readData <- function(i){
     print(paste0(calibrMod, ': ', plotTitle))
     
     RFd_corct <- RFd %>% select('pcr_corrected','datetime') %>% #mod_res
-        rename(RFd=pcr_corrected) 
+        rename("RFd-lagged"=pcr_corrected) 
     RFds_corct <- RFds %>% select('pcr_corrected','datetime') %>% #mod_res
-        rename(RFds=pcr_corrected)
+        rename(RFd_s=pcr_corrected)
     
     combine_values <- inner_join(RFd %>% select(-c('mod_res','pcr_corrected')), 
                           RFd_corct, by='datetime') %>% inner_join(., RFds_corct, by='datetime') %>% 
         mutate(datetime=as.Date(datetime))
     
     RFd_res <- RFd %>% select('mod_res','datetime') %>% #mod_res
-        rename(RFd=mod_res) 
+        rename("RFd-lagged"=mod_res) 
     RFds_res <- RFds %>% select('mod_res','datetime') %>% #mod_res
-        rename(RFds=mod_res)
+        rename(RFd_s=mod_res)
     
     combine_values_res <- inner_join(RFd %>% select(-c('mod_res','pcr_corrected')), 
                               RFd_res, by='datetime') %>% inner_join(., RFds_res, by='datetime') %>% 
         mutate(datetime=as.Date(datetime))
-    
-    combine_values_res_real <- combine_values %>% mutate(RFd=obs-RFd, RFds=obs-RFds)
-    list(combine_values, combine_values_res, combine_values_res_real, plotTitle, 
-         convRatio)
+    combine_values_res_real <- combine_values %>% rename(a="RFd-lagged") %>% 
+        mutate("RFd-lagged"=obs-a, RFd_s=obs-RFd_s) %>% select(-a)
+    list(combine_values, combine_values_res, combine_values_res_real, 
+         plotTitle, convRatio)
 }
 #!-------------hydrograph (RF only)---------------
 for(i in seq_along(csvFiles[[1]])){
@@ -54,14 +58,15 @@ for(i in seq_along(csvFiles[[1]])){
     
     #--------time series of streamflow (hydrograph)------------
     ts_q <- combine_values %>% gather(., key='Q',value='discharge',
-                                      c('obs','RFds','RFd')) %>% 
+                                      c('obs','RFd-lagged','RFd_s')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
-        mutate(Q=factor(Q, levels = c('obs','RFd','RFds')))
-    ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFds' ~ ifelse(calibrMod=='calibrated',
-                                                           'PCRcalibr-RFds','PCRun-RFds'),
+        mutate(Q=factor(Q, levels = c('obs','RFd-lagged','RFd_s')))
+    ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFd_s' ~ ifelse(calibrMod=='calibrated',
+                                                           'RFd_s','RFds'),
                                         Q=='obs'~'obs',
-                                        Q=='RFd'~ifelse(calibrMod=='calibrated',
-                                                        'PCRcalibr-RFd','PCRun-RFd')))    #Q=='RFd' ~ ifelse(calibrMod=='calibrated', 'PCRcalibr-RFd','PCRun-RFd')
+                                        Q=='RFd-lagged'~ifelse(calibrMod=='calibrated',
+                                                        'RFd-lagged','RFd-lagged'))) %>%     #Q=='RFd' ~ ifelse(calibrMod=='calibrated', 'PCRcalibr-RFd','PCRun-RFd')
+        mutate(Q=factor(Q, levels = c('obs','RFd-lagged','RFd_s')))
     p1 <- ggplot(data=ts_q %>% filter(datatype=='train'),
                  aes(x=datetime, y=discharge, col=Q))+
         geom_line(lwd=0.65, alpha=0.8)+
@@ -109,13 +114,13 @@ for(i in seq_along(csvFiles[[1]])){
     
     #-----------time series of residuals----------
     ts_res <- combine_values_res_real %>% gather(., key='Q',value='discharge',
-                                                 c('res','RFds','RFd')) %>%
+                                                 c('res','RFd-lagged','RFd_s')) %>%
         mutate(datetime=as.Date(datetime)) %>%
-        mutate(Q=factor(Q, levels = c('res','RFd','RFds')))
-    ts_res <- ts_res %>% mutate(Q=case_when(Q=='RFds' ~ ifelse(calibrMod=='calibrated',
-                                                               'PCRcalibr-RFds','PCRun-RFds'),
-                                            Q=='RFd' ~ ifelse(calibrMod=='calibrated',
-                                                               'PCRcalibr-RFd','PCRun-RFd'),
+        mutate(Q=factor(Q, levels = c('res','RFd-lagged','RFd_s')))
+    ts_res <- ts_res %>% mutate(Q=case_when(Q=='RFd_s' ~ ifelse(calibrMod=='calibrated',
+                                                               'RFd_s','RFd_s'),
+                                            Q=='RFd-lagged' ~ ifelse(calibrMod=='calibrated',
+                                                               'RFd-lagged','RFd-lagged'),
                                             Q=='res'~ifelse(calibrMod=='calibrated',
                                                             'PCRcalibr','PCRun')))       #Q=='RFd' ~ ifelse(calibrMod=='calibrated', 'PCRcalibr-RFd','PCRun-RFd')
     
@@ -140,6 +145,7 @@ for(i in seq_along(csvFiles[[1]])){
            width=12, height=6)
 }
 #!-------------CDF (RF only)---------------
+p2_list <- vector("list", length=3)
 for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     combine_values <- t[[1]]
@@ -148,14 +154,15 @@ for(i in seq_along(csvFiles[[1]])){
     convRatio <- t[[5]]
     
     ts_q <- combine_values %>% gather(., key='Q',value='discharge',
-                                      c('obs','RFds','RFd')) %>% 
+                                      c('obs','RFd-lagged','RFd_s')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
-        mutate(Q=factor(Q, levels = c('obs','RFd','RFds')))
-    ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFds' ~ ifelse(calibrMod=='calibrated',
-                                                           'PCRcalibr-RFds','PCRun-RFds'),
+        mutate(Q=factor(Q, levels = c('obs','RFd-lagged','RFd_s')))
+    ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFd_s' ~ ifelse(calibrMod=='calibrated',
+                                                           'RFd_s','RFd_s'),
                                         Q=='obs'~'obs',
-                                        Q=='RFd'~ifelse(calibrMod=='calibrated',
-                                                        'PCRcalibr-RFd','PCRun-RFd')))    #Q=='RFd' ~ ifelse(calibrMod=='calibrated', 'PCRcalibr-RFd','PCRun-RFd')
+                                        Q=='RFd-lagged'~ifelse(calibrMod=='calibrated',
+                                                        'RFd-lagged','RFd-lagged'))) %>%     #Q=='RFd' ~ ifelse(calibrMod=='calibrated', 'PCRcalibr-RFd','PCRun-RFd')
+        mutate(Q=factor(Q, levels = c('obs','RFd-lagged','RFd_s')))
     p1 <- ggplot(data=ts_q %>% filter(datatype=='train'),
                  aes(discharge, col=Q))+
         stat_ecdf()+
@@ -202,10 +209,14 @@ for(i in seq_along(csvFiles[[1]])){
     ggsave(paste0('../graph/RFresult_all_ar/timeseries_', calibrMod,
                   '/cdf_', plotTitle, '_test.tiff'), dpi=300,
            width=6, height=5)
+    p2_list[[i]] <- p2
     
 }
-
-
+tiff(paste0('../graph/RFresult_all_ar/timeseries_', calibrMod,
+            '/cdf_all_test.tiff'), res = 300, units = 'in',
+     width=8, height=10)
+do.call(grid.arrange, p2_list)
+dev.off()
 
 
 #!------ partial time series--------
@@ -217,14 +228,20 @@ for(i in seq_along(csvFiles[[1]])){
     convRatio <- t[[5]]
     
     ts_q <- combine_values %>% gather(., key='Q',value='discharge',
-                               c('obs','RFds','pcr')) %>% 
+                               c('obs','pcr','RFd_s')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
-        mutate(Q=factor(Q, levels = c('obs','pcr','RFds')))
-    ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFds' ~ ifelse(calibrMod=='calibrated',
-                                                           'PCRcalibr-RFds','PCRun-RFds'),
+        mutate(Q=factor(Q, levels = c('obs','pcr','RFd_s')))
+    ts_q <- ts_q %>% mutate(Q=case_when(Q=='RFd_s' ~ ifelse(calibrMod=='calibrated',
+                                                           'calibratedPCR RFd_s','uncalibratedPCR RFd_s'),
                                         Q=='obs'~'obs',
                                         Q=='pcr'~ifelse(calibrMod=='calibrated',
-                                                        'PCRcalibr','PCRun')))
+                                                        'calibratedPCR','uncalibratedPCR')))
+    if(calibrMod=='calibrated'){
+        ts_q$Q <- factor(ts_q$Q, levels = c('obs','calibratedPCR','calibratedPCR RFd_s'))
+    }else{
+        factor(ts_q$Q, levels = c('obs','uncalibratedPCR','uncalibratedPCR RFd_s'))
+    }
+    
     #------partial time series of discharge------
     test_p1 <- ggplot(data=ts_q %>% filter(datatype=='test', yr%in%(1991:1992)),
                       aes(x=datetime, y=discharge, col=Q))+
@@ -294,9 +311,9 @@ for(i in seq_along(csvFiles[[1]])){
     
     #--------partial time series of residuals------------
     ts_res <- combine_values_res_real %>% gather(., key='Q',value='discharge',
-                                          c('res','RFds')) %>%
+                                          c('res','RFd_s')) %>%
         mutate(datetime=as.Date(datetime)) %>%
-        mutate(Q=factor(Q, levels = c('res','RFds')))
+        mutate(Q=factor(Q, levels = c('res','RFd_s')))
     
     testres_p1 <- test_p1%+%(ts_res %>% filter(datatype=='test', yr%in%(1991:1992)))+
         theme(plot.margin = margin(0.5,0.2,0.1,0.1,"cm"))+
