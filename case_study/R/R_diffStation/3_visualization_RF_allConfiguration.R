@@ -146,7 +146,7 @@ ggplot(data = eval_allG %>%
        color=paste0('PCR without RF-correction'), 
        fill=paste0('Models'))
 ggsave('../graph/RFresult_all/gof_abs_new_train_noTitles.tiff', dpi = 300,
-       width = 6.5, height = 8)
+       width = 7.5, height = 6)
 #!-------------Variable importance-------------
 fileName <- lapply(dir, list.files, pattern='importance')[[1]]
 csvFiles <- lapply(dir, paste0, fileName)
