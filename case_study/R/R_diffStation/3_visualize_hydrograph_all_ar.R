@@ -1,4 +1,4 @@
-calibrMod <- 'calibrated'      # calibrated    uncalibrated
+calibrMod <- 'uncalibrated'      # calibrated    uncalibrated
 
 source('function_0_loadLibrary.R')
 dir <- c(
@@ -13,6 +13,7 @@ files[2] <- lapply(dir, list.files, pattern="nolag_rf_result")
 stationInfo <- read.csv('../data/rawData/stationLatLon.csv')
 
 csvFiles <- lapply(seq_along(files), function(i) paste0(dir, files[[i]]))
+
 if(!dir.exists(paste0('../graph/RFresult_all_ar/timeseries_', calibrMod))){
     dir.create(paste0('../graph/RFresult_all_ar/timeseries_', calibrMod))
 }
@@ -379,12 +380,11 @@ for(i in seq_along(csvFiles[[1]])){
     t <- readData(i)
     combine_values <- t[[1]]
     plotTitle <- t[[4]]
-
     
     ts_res <- combine_values %>% gather(., key='prediction',value='value',
-                                 c('pcr','RFds','RFd')) %>% 
+                                 c('pcr','RFd-lagged','RFd_s')) %>% 
         mutate(datetime=as.Date(datetime)) %>% 
-        mutate(prediction=factor(prediction, levels = c('pcr','RFd','RFds')))
+        mutate(prediction=factor(prediction, levels = c('pcr','RFd-lagged','RFd_s')))
     temp[[i]] <- ts_res
     temp[[i]]$plotTitle <- plotTitle
 
@@ -397,8 +397,9 @@ pcrCode <- ifelse(calibrMod=='uncalibrated', 'PCRun', 'PCRcalibr')
 plotDF <- test %>% 
     filter(datatype=='test') %>% 
     mutate(prediction=case_when(prediction=='pcr'~pcrCode,
-                                prediction=='RFd'~paste0(pcrCode, '-', prediction),
-                                prediction=='RFds'~paste0(pcrCode, '-', prediction)))
+                                prediction=='RFd-lagged'~paste0(pcrCode, '-', prediction),
+                                prediction=='RFd_s'~paste0(pcrCode, '-', prediction))) %>% 
+  mutate(prediction=factor(prediction, levels = c(pcrCode, paste0(pcrCode, '-', "RFd-lagged"), paste0(pcrCode, '-', "RFd_s"))))
     
 ggplot(plotDF,
        aes(x=obs, y=value))+
