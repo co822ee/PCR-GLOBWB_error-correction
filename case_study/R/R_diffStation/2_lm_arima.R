@@ -1,7 +1,7 @@
 source("function_0_loadLibrary.R")
 library(nlme)
 # input:
-calibrMod <- 'uncalibrated'      # calibrated / uncalibrated    
+calibrMod <- 'calibrated'      # calibrated / uncalibrated    
 # whether to implement for the calibrated/uncalibrated PCR-GLOBWB model 
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
@@ -23,24 +23,28 @@ for(station_i in seq_along(station)){
     df_train$t_ar <- 1:nrow(df_train)
     df_test$t_ar <- 1:nrow(df_test)
     df_train <- df_train[1:2500,]  #1500
-    gls_m1 <- gls(as.formula(paste0("res~", paste(x_varname, collapse = "+"))),
-                 data=df_train, correlation = corARMA(p=ar_p[station_i], q=0, form=~t_ar))  #t (time index for the data)
-    # gls_m1day <- gls(as.formula(paste0("res~", paste(x_varname, collapse = "+"))),
-    #               data=df_train, correlation = corARMA(p=ar_p[station_i], q=0, form=~t_ar|day))  #t (time index for the data) or grouping factor (day of the year))
-    # Using day of the year as a grouping factor does not make sense, because here we want to use the information from the temporal autocorrelation, rather than the correlation between the same day/date from every year.
-    
-    test_pred <- predict(gls_m1, df_test) %>% as.vector()
-    train_pred <- predict(gls_m1, df_train) %>% as.vector()
-    # test_pred <- predict(gls_m1day, df_test) %>% as.vector()
-    # train_pred <- predict(gls_m1day, df_train) %>% as.vector()
-    lme.result <- all_df %>% 
-      mutate(mod_res=c(train_pred, test_pred)) %>% 
-      mutate(pcr_corrected=pcr+mod_res)
-    
-    # lme.result <- all_df %>%    #This setting is not reasonable because it d
-    #   mutate(mod_res=predict(gls_m1, all_df %>% mutate(t=1:nrow(all_df))) ) %>% 
-    #   mutate(pcr_corrected=pcr+mod_res)
-    
+    if(!file.exists( paste0(outputDir, '/lmarima_result_',
+                            station[station_i], '.csv'))){
+      gls_m1 <- gls(as.formula(paste0("res~", paste(x_varname, collapse = "+"))),
+                    data=df_train, correlation = corARMA(p=ar_p[station_i], q=0, form=~t_ar))  #t (time index for the data)
+      # gls_m1day <- gls(as.formula(paste0("res~", paste(x_varname, collapse = "+"))),
+      #               data=df_train, correlation = corARMA(p=ar_p[station_i], q=0, form=~t_ar|day))  #t (time index for the data) or grouping factor (day of the year))
+      # Using day of the year as a grouping factor does not make sense, because here we want to use the information from the temporal autocorrelation, rather than the correlation between the same day/date from every year.
+      
+      test_pred <- predict(gls_m1, df_test) %>% as.vector()
+      train_pred <- predict(gls_m1, df_train) %>% as.vector()
+      # test_pred <- predict(gls_m1day, df_test) %>% as.vector()
+      # train_pred <- predict(gls_m1day, df_train) %>% as.vector()
+      lme.result <- all_df %>% 
+        mutate(mod_res=c(train_pred, test_pred)) %>% 
+        mutate(pcr_corrected=pcr+mod_res)
+      write.csv(lme.result, paste0(outputDir, '/lmarima_result_',
+                                   station[station_i], '.csv'), row.names = F)
+      
+    }else{
+      lme.result <- read.csv(paste0(outputDir, '/lmarima_result_',
+                                     station[station_i], '.csv'), header = T)
+    }
     lme.eval <-  lme.result %>%
       group_by(datatype) %>%
       summarise(
@@ -66,8 +70,7 @@ for(station_i in seq_along(station)){
       mutate(plotTitle=plotTitle)
     print(paste0('output csv file:', outputDir, '/lmarima_result_',
                  station[station_i], '.csv'))
-    write.csv(lme.result, paste0(outputDir, '/lmarima_result_',
-                                station[station_i], '.csv'), row.names = F)
+    
     result.eval[[station_i]] <- lme.eval
 }
 for(station_i in seq_along(station)){
