@@ -5,7 +5,7 @@ dir <- c(paste0('../data/analysis/', c('result_calibrated/', 'result_uncalibrate
 # configKey <- list('PCRcalibr-RFd','PCRun-RFd','PCRcalibr-RFds','PCRun-RFds')
 # bmL <- list(T,T,F,F)
 configKey <- c('RFd-lagged','RFd_s','RFd-lagged_s')
-
+if(!dir.exists("../graph/RFresult_all_ar/")) dir.create("../graph/RFresult_all_ar/")
 files <- lapply(dir, list.files, pattern='rf_eval')
 csvFiles <- lapply(dir, paste0, files[[1]])
 rf.eval_calib <- lapply(csvFiles[[1]], read.csv, header=T)
