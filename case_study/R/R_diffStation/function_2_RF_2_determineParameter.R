@@ -26,7 +26,7 @@ determineParam <- function(station_i){
     
     a <- (hyper_grid %>%
               dplyr::arrange(OOB_RMSE))
-    ar <- hyper_grid$OOB_RMSE %>% range() %>% round(digits =6)
+    ar <- (hyper_grid$OOB_RMSE*stationInfo$area[station_i]/0.0864) %>% range() %>% round(digits =6)
     print(paste0('value range of OOB_RMSE: ', paste0(ar, collapse = ',')))
     hyper_grid[which.min(hyper_grid$OOB_RMSE),] %>% print()
 }

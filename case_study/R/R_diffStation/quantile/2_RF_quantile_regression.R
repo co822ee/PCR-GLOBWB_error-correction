@@ -1,7 +1,7 @@
 source("function_0_loadLibrary.R")
 # input:
 # Only calibrated pcr-globwb model is used 
-calibrMod <- 'calibrated'      
+calibrMod <- 'uncalibrated'      
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
 # In the RF models, we used the state variables and lagged met variables.

@@ -46,10 +46,18 @@ lapply(df_datas, function(df_1){
 })
 # one year 
 # Basel: ar(3); Cochem: ar(3), Lobith: ar(3)
-lapply(df_datas, function(df_1){
-   acf(df_1[((df_1$datetime %>% substr(., 1, 4))%in%(1981:1990)),]$res, main=paste0("training period"))
-   pacf(df_1[((df_1$datetime %>% substr(., 1, 4))%in%(1981:1990)),]$res, main=paste0("training period"))
+par(mfrow=c(3,2))
+tiff('../graph/eda_acf.tiff', width=4.6, height=5.6,  units='in', res = 300)
+par(mfrow=c(3,2))
+lapply(seq_along(df_datas), function(i){
+   df_1 <- df_datas[[i]]
+   acf(df_1[((df_1$datetime %>% substr(., 1, 4))%in%(1981:1990)),]$res, 
+       main=paste0("training period: ", stations[[i]]))
+   pacf(df_1[((df_1$datetime %>% substr(., 1, 4))%in%(1981:1990)),]$res, 
+        main=paste0("training period: ", stations[[i]]))
 })
+dev.off()
+
 # For some specific years, the residual streamflow in Basel is ar(1).
 lapply(df_datas, function(df_1){
    lapply(1981:1990, function(yr){

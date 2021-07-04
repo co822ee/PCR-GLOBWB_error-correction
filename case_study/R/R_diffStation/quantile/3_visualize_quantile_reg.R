@@ -1,4 +1,5 @@
 source("function_0_loadLibrary.R")
+library(plyr)
 library(hydroTSM)
 calibrMod <- 'calibrated'
 source('function_2_RF_0_setUpDirectory.R')
@@ -10,7 +11,11 @@ plot_fdc <- function(station_i){
   print(station[station_i] %>% as.character)
   station_name <- (files[station_i] %>% strsplit(., '_', 3))[[1]][4] %>% sub('.csv','',.)
   # plotTitle <- stationInfo$plotName[which((stationInfo$station %>% tolower())==(station %>% tolower()))]
-  plotTitle <- paste0(c("(a) ", "(b) ", "(c) ")[station_i],  station_name)
+  if(calibrMod=='uncalibrated'){
+    plotTitle <- paste0(c("(d) ", "(e) ", "(f) ")[station_i],  station_name)
+  }else{
+    plotTitle <- paste0(c("(a) ", "(b) ", "(c) ")[station_i],  station_name)
+  }
   upstreamArea <- stationInfo$area[which((stationInfo$station %>% tolower())==(station %>% tolower()))]
   convRatio <- upstreamArea/0.0864 # from m/d to cms
   
@@ -23,7 +28,7 @@ plot_fdc <- function(station_i){
   pred_quant[[station_i]] <- mutate(pred_quant[[station_i]], 
                                     pcr_corrected50=ifelse(pcr_corrected50<0,
                                                            0, pcr_corrected50))
-  # Only data from the validation period is used
+  # Only data from the training/validation period is used
   test_df <- pred_quant[[station_i]] %>% filter(datatype=="test")
   fdc_df <- test_df %>% select(obs, pcr, pcr_corrected05, pcr_corrected50, pcr_corrected95)
   
@@ -42,7 +47,7 @@ plot_fdc <- function(station_i){
     
     
     scale_x_continuous(sec.axis = sec_axis(~.*convRatio[station_i], name=expression((m^{3}/s))))+
-    labs(title=paste0(plotTitle, ': train period (1981-1990)'),
+    labs(title=paste0(plotTitle, ': validation period'),
          subtitle = calibrMod,
          x='flow depth (m/d)',
          y='CDF')+
@@ -63,11 +68,28 @@ plot_fdc <- function(station_i){
       legend.text = element_text(size = 12),
       legend.title = element_blank())+ 
     scale_colour_manual(values=c('black', 'cornflowerblue','darkolivegreen','red','darkgreen'))      #'#F0E442'
+  if(calibrMod=='calibrated'){
+    p1 <- p1+
+      theme(legend.position = "none")
+  }
   return(p1)
 }
-pAll <- lapply(seq_along(station), plot_fdc)
-tiff(paste0('../graph/RFresult_all_ar/timeseries_', calibrMod,
+pAll1 <- lapply(seq_along(station), plot_fdc)
+calibrMod <- 'uncalibrated'
+pAll2 <- lapply(seq_along(station), plot_fdc)
+pAll <- c(pAll1, pAll2)
+my_layout <- rbind(c(1,1,1,4,4,4,4,4),
+                   c(2,2,2,5,5,5,5,5),
+                   c(3,3,3,6,6,6,6,6))
+# do.call(grid.arrange, pAll)
+tiff(paste0('../graph/RFresult_all_ar',
             '/cdf_quantile.tiff'), res = 300, units = 'in',
-     width=8, height=10)
-do.call(grid.arrange, pAll)
+     width=11, height=9.5)
+grid.arrange(grobs = pAll, layout_matrix=my_layout)
 dev.off()
+
+# tiff(paste0('../graph/RFresult_all_ar/timeseries_', calibrMod,
+#             '/cdf_quantile.tiff'), res = 300, units = 'in',
+#      width=8, height=10)
+# do.call(grid.arrange, pAll)
+# dev.off()

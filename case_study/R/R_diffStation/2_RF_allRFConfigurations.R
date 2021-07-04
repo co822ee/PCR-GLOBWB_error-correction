@@ -3,8 +3,8 @@ calibrMod <- 'uncalibrated'      # calibrated / uncalibrated
                                # whether to implement for the calibrated/uncalibrated PCR-GLOBWB model 
 trainPeriod <- 1981:1990
 testPeriod <- 1991:2000
-benchmark <- T    # whether to use only driving variables as predictors in the random forests 
-state_lagged <- F  # whether to include lagged driving variables in the random forests where driving variables and state variables are predictors
+benchmark <- F    # whether to use only historical and current driving variables as predictors in the random forests 
+state_lagged <- T  # whether to include lagged driving variables in the random forests where driving variables and state variables are predictors
 source('function_0_loadLibrary.R')
 source('function_2_RF_0_setUpDirectory.R')
 
