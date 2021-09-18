@@ -147,3 +147,140 @@ ggplot(data = eval_allG %>%
        fill=paste0('Models'))
 ggsave('../graph/RFresult_all/gof_abs_new_train_noTitles.tiff', dpi = 300,
        width = 7.5, height = 6)
+
+
+###------ variable importance --------
+dir <- c(paste0('../data/analysis/', c('result_calibrated/', 'result_uncalibrated/'))) %>% 
+  as.list
+# configKey <- list('PCRcalibr-RFd','PCRun-RFd','PCRcalibr-RFds','PCRun-RFds')
+
+configKey <- c('RFd-lagged','RFd_s','RFd-lagged_s')
+bmL <- c(F, T, F)
+if(!dir.exists("../graph/RFresult_all_ar/")) dir.create("../graph/RFresult_all_ar/")
+
+fileName <- lapply(dir, list.files, pattern='importance')[[1]]
+csvFiles <- lapply(dir, paste0, fileName)
+vi_calibr <- lapply(csvFiles[[1]], read.csv, header=T)
+# lapply(vi_calibr, dim)
+vi_uncalibr <- lapply(csvFiles[[2]], read.csv, header=T)
+
+stationInfo <- read.csv('../data/rawData/stationLatLon.csv') %>% 
+  mutate(plotName=plotName %>% as.character())
+station <- list.files('../data/preprocess/calibrated/','pcr_') %>% 
+  sapply(., function(x) substr(x, 5, nchar(x)-4)) %>% as.character()
+stationInfo <- stationInfo[(stationInfo$station %>% tolower)%in%station,] %>% 
+  mutate(station=factor(station, levels = c('Basel', 'Cochem', 'Lobith')))
+station <- factor(c('Basel', 'Cochem', 'Lobith') , levels = c('Basel', 'Cochem', 'Lobith'))
+
+# This is obtained from 3_visualization_RF.R
+viPlot <- function(vi, all_df, i, station_i, configKey2=configKey){
+  imp <- vi[[i]][as.character(station[station_i])]
+  imp_df <- data.frame(pred=vi[[i]]$names, importance=imp) %>% 
+    mutate(pred=as.character(pred))
+  names(imp_df)[2] <- 'importance'
+  corData1 <-  all_df %>% 
+    group_by(datatype) %>% 
+    mutate(res=(res-mean(res))/sd(res)) %>% as.data.frame() %>% 
+    gather(., key='pred','value', c(all_of(x_varname),-'day'))
+  
+  corDatac <- corData1 %>% 
+    group_by(pred) %>%      #datatype
+    summarise(cor=cor(value, res), 
+              corSign=ifelse(cor>0, '+', '-')) %>% 
+    as.data.frame() %>% 
+    inner_join(., imp_df, by='pred') %>% 
+    mutate(importance=sqrt(importance))
+  p1 <-  ggplot(corDatac %>% top_n(20, importance) %>% 
+                  tidyr::gather('key','value', c('cor','importance')) %>% 
+                  mutate(key=case_when(key=='cor'~'(1) cor',
+                                       key=='importance'~'(2) importance'))
+  )+
+    geom_col(aes(reorder(pred, c(value[key=='(1) cor'], 
+                                 value[key=='(2) importance']*1000)), 
+                 value),
+             position = 'dodge', fill='khaki') +
+    coord_flip() +
+    theme_light()+
+    facet_grid(.~key, scale='free')+
+    theme(
+      axis.text.y = element_text(size = 15.5),
+      axis.title = element_text(size = 0),
+      axis.text.x = element_text(size = 14),
+      strip.text.x = element_text(size = 15, color = 'black'),
+      strip.background = element_rect(colour = "transparent", fill = "white"),
+      strip.text.y = element_text(size = 15, color = 'black'),
+      title = element_text(size = 16),
+      plot.subtitle = element_text(size = 16))+
+    labs(x=NULL, y=NULL, 
+         title=plotTitle, 
+         subtitle = paste0(list('(a) ','(a) ', '(b) '), configKey2)[[i]])     #mean decrease in node impurity (sd)
+  
+  return(p1)
+  
+}
+
+pListCalibr <- vector("list", (ncol(vi_calibr[[1]])-1)*2/2)
+# pListCalibr_bm <- vector("list", (ncol(vi_calibr[[1]])-1)*2/2)
+pListUncalibr <- vector("list", (ncol(vi_calibr[[1]])-1)*2/2)
+pListBm <- vector("list", (ncol(vi_calibr[[1]])-1)*2)
+countBM <- 1
+for(i in seq_along(configKey)){
+  if(configKey[i]=='RFd-lagged'){
+    benchmark <- F
+    state_lagged <- T
+  }else if(configKey[i]=='RFd_s'){
+    benchmark <- F
+    state_lagged <- F
+  }else if(configKey[i]=='RFd-lagged_s'){
+    benchmark <- F
+    state_lagged <- T
+  }
+  for(station_i in seq_along(station)){
+    source('function_1_readData_new.R')
+    # Benchmark models
+    
+    # source('self-explanatory/function_1_readData_excludeChannelStorage_benchmarkModel_ar.R')
+    plotTitle <- stationInfo$plotName[which(stationInfo$station==station[station_i])]
+    plotTitle <- paste0(c('A. ', 'B. ', 'C. ')[station_i], plotTitle)
+    print(paste0(configKey[[i]], ': ', plotTitle))
+    if(bmL[i]==T){
+      pListBm[[station_i]] <- viPlot(vi_calibr, all_df, i, station_i, paste0('calibrated ', configKey))
+      pListBm[[station_i+length(station)]] <- viPlot(vi_uncalibr, all_df, i, station_i, paste0('uncalibrated ', configKey))+
+        labs(title = '', 
+             subtitle = paste0(list('(b) ','(b) ', '(b) '), paste0('uncalibrated ', configKey))[[i]])
+    }else{
+      if(countBM<4){
+        pListCalibr[[countBM]] <- viPlot(vi_calibr, all_df, i, station_i, paste0('calibrated ', configKey))
+        pListUncalibr[[countBM]] <- viPlot(vi_uncalibr, all_df, i, station_i, paste0('uncalibrated ', configKey))
+        countBM=countBM+1
+      }else{
+        pListCalibr[[countBM]] <- viPlot(vi_calibr, all_df, i, station_i, paste0('calibrated ', configKey))+
+          labs(title = '')
+        pListUncalibr[[countBM]] <- viPlot(vi_uncalibr, all_df, i, station_i, paste0('uncalibrated ', configKey))+
+          labs(title = '')
+        countBM=countBM+1
+      }
+    }
+    
+  }
+}
+pListCalibr$ncol <-3 
+pListUncalibr$ncol <-3
+pListBm$ncol <-3 
+# pListUncalibr_bm$ncol <-3
+
+
+tiff(paste0("../graph/RFresult_all_ar/VI&cor_calibr.tiff"), 
+     height=13, width=24, units='in', res=300)
+do.call(grid.arrange, pListCalibr)
+dev.off()
+
+tiff(paste0("../graph/RFresult_all_ar/VI&cor_uncalibr.tiff"), 
+     height=13, width=24, units='in', res=300)
+do.call(grid.arrange, pListUncalibr)
+dev.off()
+
+tiff(paste0("../graph/RFresult_all_ar/VI&cor_calibr_bm.tiff"), 
+     height=13, width=24, units='in', res=300)
+do.call(grid.arrange, pListBm)
+dev.off()
